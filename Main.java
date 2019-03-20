@@ -23,7 +23,7 @@ public class Main {
     public static HashMap<Integer,Road> roads=new HashMap<>();
     public static HashMap<Integer,Cross> crosses=new HashMap<>();
     public static List<Answer> answers=new ArrayList<>();
-   
+    public static List<Car> carsCache=new ArrayList<>();
     private static final Logger logger = Logger.getLogger(Main.class);
     public static void main(String[] args)
     {
@@ -48,11 +48,11 @@ public class Main {
 //        for(Car car : cars){
 //            findShortBydijkstra(car);
 //        }
-        int k=-10;
+        int k=-15;
         Car c;
         for(int i=0;i<cars.size();i++){
-           if(i%100==0){
-               k+=10;
+           if(i%150==0){
+               k+=15;
            }
            c= cars.get(i);
            c.setPlanTime(c.getPlanTime()+k);
@@ -116,7 +116,7 @@ public class Main {
                                 path.put(to,r.getId());
                             }
                         }else{
-                            dist.put(to, r.getWeigth(car.getSpeed(),car.getPlanTime())+dist.get(nextCid));
+                            dist.put(to, r.getWeigth(car.getSpeed(),car.getPlanTime(),nextCid)+dist.get(nextCid));
                             path.put(to,r.getId());
                         }
                         //path.put(r.getFrom(),r.getId());

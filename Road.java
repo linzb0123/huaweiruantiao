@@ -14,9 +14,11 @@ public class Road {
     private HashMap<Integer,Integer> fblocking = new HashMap<>();
     private HashMap<Integer,Integer> tblocking = new HashMap<>();
 //    private int weight;
-    
+//    public static void main(String[] args) {
+//        System.out.println((8/5)*5);
+//    }
     public void addBlocking(int time,int start){
-        int key = (time/3)*3;
+        int key = (time/5)*5;
         if(isDuplex){
             if(start==from){
                 int oldValue =  fblocking.getOrDefault(key, 0);
@@ -63,9 +65,7 @@ public class Road {
 //        return  length/sp*(length*channel-tblocking.getOrDefault(key, 0))*5;
         return length/sp*5*(tanh((totalNum-tblocking.getOrDefault(key, 0))*1.0/totalNum*1.0));
     }
-//    public static void main(String[] args) {
-//        System.out.println(tanh(0.5));
-//    }
+
     private static double sigmoid(double x){
         return 1.0/(1+Math.pow(Math.E,-x));
     }
