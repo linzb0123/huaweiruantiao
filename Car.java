@@ -12,7 +12,7 @@ public class Car implements Comparable<Car>{
    
     public int getTime(Road road){
         int sp = Math.min(speed,road.getSpeed());
-        return road.getLength()/sp+new Random().nextInt(3);
+        return road.getLength()/sp;
         
     }
     public int getId() {

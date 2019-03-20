@@ -207,7 +207,7 @@ public class Main {
         int totalTime=car.getPlanTime();
         for(Integer x:path){
             Road r = roads.get(x);
-            totalTime+=car.getTime(r);
+            totalTime+=car.getTime(r)+5;
             r.addBlocking(totalTime,start);
             start = (start == r.getFrom()?r.getTo():r.getFrom());
         }
