@@ -23,8 +23,10 @@ public class Main {
     public static HashMap<Integer,Road> roads=new HashMap<>();
     public static HashMap<Integer,Cross> crosses=new HashMap<>();
     public static List<Answer> answers=new ArrayList<>();
-    public static List<Car> carsCache=new ArrayList<>();
+    public static LinkedList<Car> carsCache=new LinkedList<>();
     private static final Logger logger = Logger.getLogger(Main.class);
+    public static final int PRETIME = 10;
+    public static final int PRENUM = 300;
     public static void main(String[] args)
     {
         if (args.length != 4) {
@@ -48,15 +50,20 @@ public class Main {
 //        for(Car car : cars){
 //            findShortBydijkstra(car);
 //        }
-        int k=-10;
+        int k=-PRETIME;
         Car c;
         for(int i=0;i<cars.size();i++){
-           if(i%110==0){
-               k+=10;
+           if(i%PRENUM==0){
+               k+=PRETIME;
            }
            c= cars.get(i);
            c.setPlanTime(c.getPlanTime()+k);
-           findShortBydijkstra(c);
+           findShortBydijkstra(c,false);
+        }
+        while(!carsCache.isEmpty()){
+            c = carsCache.pop();
+            c.setPlanTime(c.getPlanTime()+5);
+            findShortBydijkstra(c,true);
         }
         
         // TODO: write answer.txt
@@ -66,7 +73,7 @@ public class Main {
         
         logger.info("End...");
     }
-    public static void findShortBydijkstra(Car car){
+    public static void findShortBydijkstra(Car car,boolean isRpeat){
         HashSet<Integer> visit = new HashSet<>();
         HashMap<Integer,Double> dist = new HashMap<>();
         HashMap<Integer,Integer> path = new HashMap<>();
@@ -148,6 +155,10 @@ public class Main {
             }
 //            System.out.println(visit.size());
             if(visit.contains(end)){
+                if(dist.get(end)>1024){
+                    carsCache.push(car);;
+                    return ;
+                }
                 System.out.println("已经找到最短路径"); 
                 Answer ans = new Answer();
                 ans.setCarId(car.getId());
@@ -200,6 +211,7 @@ public class Main {
             r.addBlocking(totalTime,start);
             start = (start == r.getFrom()?r.getTo():r.getFrom());
         }
+//        System.out.println(totalTime-car.getPlanTime());
         
     }
     public static void initRead(String carPath,String roadPath,String crossPath){

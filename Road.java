@@ -49,23 +49,34 @@ public class Road {
         
     }
     public double getWeigth(int carSpeed,int time,int start){
-        int key = (time/3)*3;
+        int key = (time/10)*10;
         int sp = Math.min(speed,carSpeed);
         int totalNum = length*channel;
+        int rest;
+        double wei =0.0;
         if(isDuplex){
             if(from==start){
-//                return length/sp*(totalNum-fblocking.getOrDefault(key, 0))*5;
-                return length/sp*5*(tanh((totalNum-fblocking.getOrDefault(key, 0))*1.0/totalNum*1.0));
+                rest = totalNum-fblocking.getOrDefault(key, 0);
             }else{
-                return length/sp*5*(tanh((totalNum-tblocking.getOrDefault(key, 0))*1.0/totalNum*1.0));
+                rest = totalNum-tblocking.getOrDefault(key, 0);
+            }
+            if(rest>8){
+                wei = length*1.0/sp;
+            }else{
+                wei = length*1.0/sp*Math.pow(2, 8-rest);
             }
         }
 
         
 //        return  length/sp*(length*channel-tblocking.getOrDefault(key, 0))*5;
-        return length/sp*5*(tanh((totalNum-tblocking.getOrDefault(key, 0))*1.0/totalNum*1.0));
+        return wei;
     }
-
+//public static void main(String[] args) {
+//    Road r = new Road();
+//    int x = 10*3;
+//    System.out.println(Math.log10(5));
+//    System.out.println(tanh(0.0/5));
+//}
     private static double sigmoid(double x){
         return 1.0/(1+Math.pow(Math.E,-x));
     }
