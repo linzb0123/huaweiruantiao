@@ -51,7 +51,7 @@ public class Main {
         int k=-10;
         Car c;
         for(int i=0;i<cars.size();i++){
-           if(i%150==0){
+           if(i%100==0){
                k+=10;
            }
            c= cars.get(i);
