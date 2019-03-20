@@ -26,7 +26,7 @@ public class Main {
     public static LinkedList<Car> carsCache=new LinkedList<>();
     private static final Logger logger = Logger.getLogger(Main.class);
     public static final int PRETIME = 10;
-    public static final int PRENUM = 300;
+    public static final int PRENUM = 200;
     public static void main(String[] args)
     {
         if (args.length != 4) {

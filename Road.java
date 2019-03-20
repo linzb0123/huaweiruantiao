@@ -60,13 +60,15 @@ public class Road {
             }else{
                 rest = totalNum-tblocking.getOrDefault(key, 0);
             }
-            if(rest>8){
-                wei = length*1.0/sp;
-            }else{
-                wei = length*1.0/sp*Math.pow(2, 8-rest);
-            }
+            
+        }else{
+            rest = totalNum-fblocking.getOrDefault(key, 0);
         }
-
+        if(rest>8){
+            wei = length*1.0/sp;
+        }else{
+            wei = length*1.0/sp*Math.pow(2, 8-rest);
+        }
         
 //        return  length/sp*(length*channel-tblocking.getOrDefault(key, 0))*5;
         return wei;
