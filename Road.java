@@ -15,10 +15,10 @@ public class Road {
     private HashMap<Integer,Integer> tblocking = new HashMap<>();
 //    private int weight;
 //    public static void main(String[] args) {
-//        System.out.println((8/5)*5);
+//        System.out.println((8/10)*10);
 //    }
     public void addBlocking(int time,int start){
-        int key = (time/5)*5;
+        int key = (time/10)*10;
         if(isDuplex){
             if(start==from){
                 int oldValue =  fblocking.getOrDefault(key, 0);

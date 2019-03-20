@@ -48,11 +48,11 @@ public class Main {
 //        for(Car car : cars){
 //            findShortBydijkstra(car);
 //        }
-        int k=-15;
+        int k=-10;
         Car c;
         for(int i=0;i<cars.size();i++){
-           if(i%150==0){
-               k+=15;
+           if(i%110==0){
+               k+=10;
            }
            c= cars.get(i);
            c.setPlanTime(c.getPlanTime()+k);
