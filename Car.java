@@ -52,6 +52,7 @@ public class Car implements Comparable<Car>{
                // System.out.println(id +"  "+ this.flag+" ---->  " + i);
                 Judge.carWaitCnt--;
             }
+            waiting=this;
         }
         this.flag = i;
     }
@@ -108,6 +109,12 @@ public class Car implements Comparable<Car>{
     }
     public void addToWaitChain(Car c){
         waiting = c.findWaitChain();
+    }
+//    public void outputWaitChain(){
+//        System.out.print(this.id+" ");
+//    }
+    public void setWaitSeft(){
+        waiting = this;
     }
     @Override
     public int compareTo(Car o) {

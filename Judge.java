@@ -175,6 +175,14 @@ public class Judge {
                     } else {
                         // 前车是等待状态
                         if (car.getFlag() == Car.WAIT) {
+//                            //并查集 等待链来判断是否dead lock
+//                            if(chan.channel.getLast().findWaitChain()==car){
+//                                System.out.println("dead lock!!!");
+//                                System.exit(1);
+//                            }else{
+//                                car.addToWaitChain(chan.channel.getLast());
+//                            }
+//                            
                             break;
                         }
                        
@@ -194,6 +202,12 @@ public class Judge {
                             }
                             tmpDir = cross.getTurnDir(tmpCar.getCurRoadId(), tmpCar.getNextRoadId());
                             if (tmpDir == Cross.STRAIGHT){
+//                                if(tmpCar.findWaitChain()==car){
+//                                    System.out.println("dead lock!!!");
+//                                    System.exit(1);
+//                                }else{
+//                                    car.addToWaitChain(tmpCar);
+//                                }
                                 break;// 冲突
                             }
                                 
@@ -216,6 +230,14 @@ public class Judge {
                     } else {
                         // 前车是等待状态
                         if (car.getFlag() == Car.WAIT) {
+//                            //不完善 没效果
+//                            //并查集 等待链来判断是否dead lock 
+//                            if(chan.channel.getLast().findWaitChain()==car){
+//                                System.out.println("dead lock!!!");
+//                                System.exit(1);
+//                            }else{
+//                                car.addToWaitChain(chan.channel.getLast());
+//                            }
                             break;
                         }
                         
@@ -233,10 +255,16 @@ public class Judge {
                         if (tmpCar != null) {
                             //那一辆车即将到站
                             if(tmpCar.getTo()==cross.getId()){
-                                break;// 冲突
+                                break;
                             }
                             tmpDir = cross.getTurnDir(tmpCar.getCurRoadId(), tmpCar.getNextRoadId());
                             if (tmpDir == Cross.STRAIGHT){
+//                                if(tmpCar.findWaitChain()==car){
+//                                    System.out.println("dead lock!!!");
+//                                    System.exit(1);
+//                                }else{
+//                                    car.addToWaitChain(tmpCar);
+//                                }
                                 break;// 冲突
                             }
                                
@@ -254,6 +282,12 @@ public class Judge {
                             }
                             tmpDir = cross.getTurnDir(tmpCar.getCurRoadId(), tmpCar.getNextRoadId());
                             if (tmpDir == Cross.LEFT){
+//                                if(tmpCar.findWaitChain()==car){
+//                                    System.out.println("dead lock!!!");
+//                                    System.exit(1);
+//                                }else{
+//                                    car.addToWaitChain(tmpCar);
+//                                }
                                 break;// 冲突
                             }
                                
@@ -277,6 +311,13 @@ public class Judge {
                     } else {
                         // 前车是等待状态
                         if (car.getFlag() == Car.WAIT) {
+//                            //并查集 等待链来判断是否dead lock
+//                            if(chan.channel.getLast().findWaitChain()==car){
+//                                System.out.println("dead lock!!!");
+//                                System.exit(1);
+//                            }else{
+//                                car.addToWaitChain(chan.channel.getLast());
+//                            }
                             break;
                         }
                     }
