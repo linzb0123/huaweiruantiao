@@ -13,7 +13,7 @@ public class Car implements Comparable<Car>{
     private int to;
     private int speed;
     private int planTime;
-    
+    public Car waiting;
     private Answer path;
     
     private int curRoadDis;//在当前已经道路行驶的距离
@@ -21,6 +21,9 @@ public class Car implements Comparable<Car>{
     private int flag=BEGIN;
     
     private int curPos=0; // 当前的位置（道路）
+    public Car(){
+        waiting=this;
+    }
     public void moveDistance(int dis){
         curRoadDis+=dis;
     }
@@ -97,6 +100,15 @@ public class Car implements Comparable<Car>{
     public void setPath(Answer path) {
         this.path = path;
     }
+    public Car findWaitChain(){
+        if(waiting.equals(this)){
+            return this;
+        }
+        return waiting.findWaitChain();
+    }
+    public void addToWaitChain(Car c){
+        waiting = c.findWaitChain();
+    }
     @Override
     public int compareTo(Car o) {
         //速度快的先调度
@@ -107,6 +119,14 @@ public class Car implements Comparable<Car>{
 //        else if(planTime>o.getPlanTime()) return -1;
 //        else
         //按时间调度
+        if(o.path!=null){
+            if(this.path.getStartTime()>o.path.getStartTime())return 1;
+            else if(this.path.getStartTime()<o.path.getStartTime()) return -1;
+            else if(id>o.getId()) return 1;
+            else if(id<o.getId()) return -1;
+            else
+            return 0;
+        }
         if(planTime>o.getPlanTime())return 1;
         else if(planTime<o.getPlanTime()) return -1;
         else if(id>o.getId()) return 1;

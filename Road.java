@@ -63,7 +63,7 @@ public class Road {
         }else{
             for(Channel ch : bchannels){
                 if(ch.channel.isEmpty()) continue;
-                c = ch.channel.peek();
+                c = ch.channel.getFirst();
                 if(c==null){
                    continue;
                 }else{
