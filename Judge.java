@@ -55,6 +55,7 @@ public class Judge {
         System.out.println(carMap.size());
         int time=0;
         for(time=0;carArriveCnt!=carMap.size();time++){
+            System.out.println("当前时间"+time);
             for(Road r : roads.values()){
 //                System.out.println("调度道路"+r.getId());
                 driveAllCarJustOnRoadToEndState(r,true);
@@ -68,40 +69,7 @@ public class Judge {
 //                for(Road r : roads.values()){
 //                    driveAllCarJustOnRoadToEndState(r,false);
 //                }
-//                System.out.println("-----------------------------------------");
-//                for(Road r : roads.values()){
-//                    logger.info(r.getId());
-//                    for(Channel ccc :r.getFchannels()){
-//                        String str="";
-//                        String str2="";
-//                        for(Car carr:ccc.channel){
-//                            str += carr.getFlag()+"("+carr.getCurRoadDis()+","+carr.getId()+")";
-//                        }
-//                        if(str.length()>0){
-//                            logger.info("--------------------");
-//                            logger.info(r.getId()+" "+r.getFrom()+"---->"+r.getTo());
-//                            logger.info(str);
-//                            logger.info("--------------------");
-//                        }
-//                        
-//                    }
-//                    if(r.getIsDuplex()){
-//                        for(Channel ccc :r.getBchannels()){
-//                            String str="";
-//                            String str2="";
-//                            for(Car carr:ccc.channel){
-//                                str += carr.getFlag()+"("+carr.getCurRoadDis()+","+carr.getId()+")";
-//                            }
-//                            if(str.length()>0){
-//                                logger.info("--------------------");
-//                                logger.info(str);
-//                                logger.info("--------------------");
-//                            }
-//                            
-//                        }
-//                    }
-//                }
-//                System.out.println("-----------------------------------------");
+
             }
             driveCarInGarage(time);
             
