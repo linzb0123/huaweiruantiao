@@ -26,7 +26,7 @@ public class Main {
     public static LinkedList<Car> carsCache=new LinkedList<>();
     private static final Logger logger = Logger.getLogger(Main.class);
     public static final int PRETIME = 10;
-    public static final int PRENUM = 200;
+    public static final int PRENUM = 20;
     public static void main(String[] args)
     {
         if (args.length != 4) {
@@ -42,10 +42,8 @@ public class Main {
         String answerPath = args[3];
         logger.info("carPath = " + carPath + " roadPath = " + roadPath + " crossPath = " + crossPath + " and answerPath = " + answerPath);
 
-        // TODO:read input files
         logger.info("start read input files");
         initRead(carPath,roadPath,crossPath);
-        // TODO: calc
         Collections.sort(cars);
 //        for(Car car : cars){
 //            findShortBydijkstra(car);
@@ -66,7 +64,6 @@ public class Main {
             findShortBydijkstra(c,true);
         }
         
-        // TODO: write answer.txt
         logger.info("Start write output file");
         writeAnswer(answerPath);
         
@@ -332,7 +329,6 @@ public class Main {
             write.flush();
             write.close();
         } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         
