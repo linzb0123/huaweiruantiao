@@ -37,6 +37,7 @@ public class Channel {
                     return true;
                 }
                 if (curTailCar.getFlag() == Car.WAIT) {
+                    c.setFlag(Car.WAIT);
                     return false;
                 }
                 c.setCurRoadDis(nextCanMoveDis);

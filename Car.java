@@ -41,12 +41,12 @@ public class Car implements Comparable<Car>{
     public void setFlag(int i){
         if(i==WAIT){
             if(this.flag!=WAIT) {
-                System.out.println(id +"  "+ this.flag+" ----> Wait ");
+               // System.out.println(id +"  "+ this.flag+" ----> Wait ");
                 Judge.carWaitCnt++;
             }
         }else{
             if(this.flag==WAIT){
-                System.out.println(id +"  "+ this.flag+" ---->  " + i);
+               // System.out.println(id +"  "+ this.flag+" ---->  " + i);
                 Judge.carWaitCnt--;
             }
         }

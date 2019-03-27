@@ -34,7 +34,8 @@ public class Cross implements Comparable<Cross>{
         if(east==rid) return EAST;
         if(south==rid) return SOUTH;
         if(west==rid) return WEST;
-        System.out.println("Direction error");
+        System.err.println("Direction error");
+        System.exit(1);
         return -1;
     }
     
@@ -86,7 +87,8 @@ public class Cross implements Comparable<Cross>{
             if(t==NORTH) return LEFT;
             if(t==SOUTH) return RIGHT;
         }
-        System.out.println("error fid:"+fid+"     to tid:"+tid);
+        System.err.println("error fid:"+fid+"     to tid:"+tid);
+        System.exit(1);
         return STRAIGHT;
     }
     public int getRidFromDir(int toid,int dir){
@@ -110,10 +112,11 @@ public class Cross implements Comparable<Cross>{
         
         if(to==WEST){
             if(dir==STRAIGHT)return east;
-            if(dir==LEFT)return north;
-            if(dir==RIGHT)return south;
+            if(dir==LEFT)return south;
+            if(dir==RIGHT)return north;
         } 
-        System.out.println("error dir: to"+to);
+        System.err.println("error dir: to"+to);
+        System.exit(1);
         return 0;
     }
     public int getId() {

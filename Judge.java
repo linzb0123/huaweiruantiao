@@ -55,15 +55,15 @@ public class Judge {
         System.out.println(carMap.size());
         int time=0;
         for(time=0;carArriveCnt!=carMap.size();time++){
-//            System.out.println("当前时间"+time);
+            System.out.println("当前时间"+time);
             for(Road r : roads.values()){
 //                System.out.println("调度道路"+r.getId());
                 driveAllCarJustOnRoadToEndState(r,true);
             }
             while(carWaitCnt!=0){
-//                System.out.println(carWaitCnt);
+                System.out.println(carWaitCnt);
                 for(Cross cross : crossList){
-                    System.out.println("调度路口"+cross.getId());
+//                    System.out.println("调度路口"+cross.getId());
                     driveAllWaitCar(cross);
                 }
                 for(Road r : roads.values()){
@@ -177,11 +177,9 @@ public class Judge {
                 car = road.getFirst(cross.getId());
                 //该道路已经调度完，即没有等待状态
                 if (car == null){
-//                    road.flag=true;
                     cnt++;
                     break;
                 }
-                cnt=0;
                 firstChannel = road.getFirstChannel(cross.getId());
                 // 到达终点
                 if (car.getTo() == cross.getId()) {
@@ -191,6 +189,7 @@ public class Judge {
                     road.moveOutRoad(cross.getId());
                     firstChannel.driveCar(false);
                     System.out.println("arrvie "+carArriveCnt);
+                    cnt=0;
                     continue;
                 }
                 nextRoad = roads.get(car.getNextRoadId());
@@ -200,24 +199,27 @@ public class Judge {
                     // 获取可进入的车道
                     Channel chan = nextRoad.getIntoChannels(cross.getId());
                     if (chan == null) {
-                        // 全部终态，
+                        // 全部终态，且没有位置
                         car.setCurRoadDis(firstChannel.road.getLength());
                         car.setFlag(Car.END);
                         // 车道终结态后调度该车道
                         firstChannel.driveCar(false);
-                        break;
+                        cnt=0;
+                        continue;
                     }
                     if (chan.moveInACar(firstChannel, car)) {
                         road.moveOutRoad(cross.getId());
                     } else {
                         // 前车是等待状态
                         if (car.getFlag() == Car.WAIT) {
+                            cnt++;
                             break;
                         }
                        
                     }
                     // 车道终结态后调度该车道
                     firstChannel.driveCar(false);
+                    cnt=0;
                     continue;
 
                 } else if (dir == Cross.LEFT) {
@@ -225,9 +227,17 @@ public class Judge {
                     if(dirRoadId!=-1){
                         tmpCar = roads.get(dirRoadId).getFirst(cross.getId());
                         if (tmpCar != null) {
+                            //那一辆车即将到站
+                            if(tmpCar.getTo()==cross.getId()){
+                                cnt++;
+                                break;// 即将到站的为直行优先级
+                            }
                             tmpDir = cross.getTurnDir(tmpCar.getCurRoadId(), tmpCar.getNextRoadId());
-                            if (tmpDir == Cross.STRAIGHT)
+                            if (tmpDir == Cross.STRAIGHT){
+                                cnt++;
                                 break;// 冲突
+                            }
+                                
                         }
                     }
                    
@@ -240,19 +250,22 @@ public class Judge {
                         car.setFlag(Car.END);
                         // 车道终结态后调度该车道
                         firstChannel.driveCar(false);
-                        break;
+                        cnt=0;
+                        continue;
                     }
                     if (chan.moveInACar(firstChannel, car)) {
                         road.moveOutRoad(cross.getId());
                     } else {
                         // 前车是等待状态
                         if (car.getFlag() == Car.WAIT) {
+                            cnt++;
                             break;
                         }
                         
                     }
                  // 车道终结态后调度该车道
                     firstChannel.driveCar(false);
+                    cnt=0;
                     continue;
 
                 } else {
@@ -262,9 +275,17 @@ public class Judge {
                     if(dirRoadId!=-1){
                         tmpCar = roads.get(dirRoadId).getFirst(cross.getId());
                         if (tmpCar != null) {
-                            tmpDir = cross.getTurnDir(tmpCar.getCurRoadId(), tmpCar.getNextRoadId());
-                            if (tmpDir == Cross.STRAIGHT)
+                            //那一辆车即将到站
+                            if(tmpCar.getTo()==cross.getId()){
+                                cnt++;
                                 break;// 冲突
+                            }
+                            tmpDir = cross.getTurnDir(tmpCar.getCurRoadId(), tmpCar.getNextRoadId());
+                            if (tmpDir == Cross.STRAIGHT){
+                                cnt++;
+                                break;// 冲突
+                            }
+                               
                         }
                     }
                     
@@ -273,9 +294,17 @@ public class Judge {
                     if(dirRoadId!=-1){
                         tmpCar = roads.get(dirRoadId).getFirst(cross.getId());
                         if (tmpCar != null) {
-                            tmpDir = cross.getTurnDir(tmpCar.getCurRoadId(), tmpCar.getNextRoadId());
-                            if (tmpDir == Cross.LEFT)
+                            //那一辆车即将到站
+                            if(tmpCar.getTo()==cross.getId()){
+                                cnt++;
                                 break;// 冲突
+                            }
+                            tmpDir = cross.getTurnDir(tmpCar.getCurRoadId(), tmpCar.getNextRoadId());
+                            if (tmpDir == Cross.LEFT){
+                                cnt++;
+                                break;// 冲突
+                            }
+                               
                         }
                     }
                     
@@ -289,18 +318,21 @@ public class Judge {
                         car.setFlag(Car.END);
                         // 车道终结态后调度该车道
                         firstChannel.driveCar(false);
-                        break;
+                        cnt=0;
+                        continue;
                     }
                     if (chan.moveInACar(firstChannel, car)) {
                         road.moveOutRoad(cross.getId());
                     } else {
                         // 前车是等待状态
                         if (car.getFlag() == Car.WAIT) {
+                            cnt++;
                             break;
                         }
                     }
                  // 车道终结态后调度该车道
                     firstChannel.driveCar(false);
+                    cnt=0;
                     continue;
                 }
 
@@ -331,9 +363,9 @@ public class Judge {
                     carlist.poll();
 //                    System.out.println(Arrays.toString(chan));
 //                    System.out.println(chan.channel);
-                    carInRoadCnt++;
+//                    carInRoadCnt++;
                     carAllCnt++;
-                    System.out.println("车"+c.getId()+"开始上路 总数："+carAllCnt);
+                    System.out.println("车"+c.getId()+"开始上路 总数："+carAllCnt+"  当前路上有："+(carAllCnt-carArriveCnt)+" 已到达"+carArriveCnt);
                 }else{
                     break;
                 }
