@@ -102,7 +102,7 @@ public class Car implements Comparable<Car>{
         this.path = path;
     }
     public Car findWaitChain(){
-        if(waiting.equals(this)){
+        if(waiting==this){
             return this;
         }
         return waiting.findWaitChain();

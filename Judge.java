@@ -54,13 +54,19 @@ public class Judge {
         System.out.println("开始调度。。。");
         System.out.println(carMap.size());
         int time=0;
+        int driveAllWaitCarCnt=0;//暂时用来退出dead lock
         for(time=0;carArriveCnt!=carMap.size();time++){
             System.out.println("当前时间"+time);
+            driveAllWaitCarCnt=0;
             for(Road r : roads.values()){
 //                System.out.println("调度道路"+r.getId());
                 driveAllCarJustOnRoadToEndState(r,true);
             }
             while(carWaitCnt!=0){
+                if(driveAllWaitCarCnt++>100000){
+                    System.out.println("可能dead lock 了");
+                    System.exit(1);
+                }
 //                System.out.println(carWaitCnt);
                 for(Cross cross : crossList){
 //                    System.out.println("调度路口"+cross.getId());
@@ -175,13 +181,13 @@ public class Judge {
                     } else {
                         // 前车是等待状态
                         if (car.getFlag() == Car.WAIT) {
-//                            //并查集 等待链来判断是否dead lock
-//                            if(chan.channel.getLast().findWaitChain()==car){
-//                                System.out.println("dead lock!!!");
-//                                System.exit(1);
-//                            }else{
-//                                car.addToWaitChain(chan.channel.getLast());
-//                            }
+                            //并查集 等待链来判断是否dead lock
+                            if(chan.channel.getLast().findWaitChain()==car){
+                                System.out.println("dead lock!!!");
+                                System.exit(1);
+                            }else{
+                                car.addToWaitChain(chan.channel.getLast());
+                            }
 //                            
                             break;
                         }
@@ -202,12 +208,12 @@ public class Judge {
                             }
                             tmpDir = cross.getTurnDir(tmpCar.getCurRoadId(), tmpCar.getNextRoadId());
                             if (tmpDir == Cross.STRAIGHT){
-//                                if(tmpCar.findWaitChain()==car){
-//                                    System.out.println("dead lock!!!");
-//                                    System.exit(1);
-//                                }else{
-//                                    car.addToWaitChain(tmpCar);
-//                                }
+                                if(tmpCar.findWaitChain()==car){
+                                    System.out.println("dead lock!!!");
+                                    System.exit(1);
+                                }else{
+                                    car.addToWaitChain(tmpCar);
+                                }
                                 break;// 冲突
                             }
                                 
@@ -230,14 +236,14 @@ public class Judge {
                     } else {
                         // 前车是等待状态
                         if (car.getFlag() == Car.WAIT) {
-//                            //不完善 没效果
-//                            //并查集 等待链来判断是否dead lock 
-//                            if(chan.channel.getLast().findWaitChain()==car){
-//                                System.out.println("dead lock!!!");
-//                                System.exit(1);
-//                            }else{
-//                                car.addToWaitChain(chan.channel.getLast());
-//                            }
+                            //不完善 没效果
+                            //并查集 等待链来判断是否dead lock 
+                            if(chan.channel.getLast().findWaitChain()==car){
+                                System.out.println("dead lock!!!");
+                                System.exit(1);
+                            }else{
+                                car.addToWaitChain(chan.channel.getLast());
+                            }
                             break;
                         }
                         
@@ -259,12 +265,12 @@ public class Judge {
                             }
                             tmpDir = cross.getTurnDir(tmpCar.getCurRoadId(), tmpCar.getNextRoadId());
                             if (tmpDir == Cross.STRAIGHT){
-//                                if(tmpCar.findWaitChain()==car){
-//                                    System.out.println("dead lock!!!");
-//                                    System.exit(1);
-//                                }else{
-//                                    car.addToWaitChain(tmpCar);
-//                                }
+                                if(tmpCar.findWaitChain()==car){
+                                    System.out.println("dead lock!!!");
+                                    System.exit(1);
+                                }else{
+                                    car.addToWaitChain(tmpCar);
+                                }
                                 break;// 冲突
                             }
                                
@@ -282,12 +288,12 @@ public class Judge {
                             }
                             tmpDir = cross.getTurnDir(tmpCar.getCurRoadId(), tmpCar.getNextRoadId());
                             if (tmpDir == Cross.LEFT){
-//                                if(tmpCar.findWaitChain()==car){
-//                                    System.out.println("dead lock!!!");
-//                                    System.exit(1);
-//                                }else{
-//                                    car.addToWaitChain(tmpCar);
-//                                }
+                                if(tmpCar.findWaitChain()==car){
+                                    System.out.println("dead lock!!!");
+                                    System.exit(1);
+                                }else{
+                                    car.addToWaitChain(tmpCar);
+                                }
                                 break;// 冲突
                             }
                                
@@ -311,13 +317,13 @@ public class Judge {
                     } else {
                         // 前车是等待状态
                         if (car.getFlag() == Car.WAIT) {
-//                            //并查集 等待链来判断是否dead lock
-//                            if(chan.channel.getLast().findWaitChain()==car){
-//                                System.out.println("dead lock!!!");
-//                                System.exit(1);
-//                            }else{
-//                                car.addToWaitChain(chan.channel.getLast());
-//                            }
+                            //并查集 等待链来判断是否dead lock
+                            if(chan.channel.getLast().findWaitChain()==car){
+                                System.out.println("dead lock!!!");
+                                System.exit(1);
+                            }else{
+                                car.addToWaitChain(chan.channel.getLast());
+                            }
                             break;
                         }
                     }
