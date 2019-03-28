@@ -96,7 +96,6 @@ public class Channel {
                     } else {
                         if (last.getFlag() == Car.WAIT) {
                             c.setFlag(Car.WAIT);
-                            c.addToWaitChain(last);
                         } else {
                             c.moveDistance(dis);
                             c.setFlag(Car.END);
@@ -132,7 +131,6 @@ public class Channel {
                         } else {
                             if (last.getFlag() == Car.WAIT) {
                                 c.setFlag(Car.WAIT);
-                                c.addToWaitChain(last);
                             } else {
                                 c.moveDistance(dis);
                                 c.setFlag(Car.END);

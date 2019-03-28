@@ -19,6 +19,8 @@ public class Cross implements Comparable<Cross>{
     private int west;
     private List<Integer> rids = new ArrayList<>();
     
+    public boolean isWait = false;
+    
     public List<Integer> getRids(){
         return rids;
     }

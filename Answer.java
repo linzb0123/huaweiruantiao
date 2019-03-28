@@ -9,6 +9,13 @@ public class Answer {
     private int startTime;
     private LinkedList<Integer> roadIds = new LinkedList<>();
     
+    public Answer(){
+        
+    }
+    public Answer(int carId,int startTime){
+        this.carId = carId;
+        this.startTime = startTime;
+    }
     
     public void addToHead(int rid){
         roadIds.addFirst(rid);

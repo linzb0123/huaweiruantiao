@@ -51,6 +51,7 @@ public class Car implements Comparable<Car>{
             if(this.flag==WAIT){
                // System.out.println(id +"  "+ this.flag+" ---->  " + i);
                 Judge.carWaitCnt--;
+                Judge.waiting=false;
             }
             waiting=this;
         }

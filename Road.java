@@ -173,11 +173,11 @@ public class Road {
         this.bchannels = bchannels;
     }
     public int getWeigth(){
-        return length;
+        return (int)Math.ceil(length/speed);
     }
-    public double getWeigth(int carSpeed){
+    public int getWeigth(int carSpeed){
         int sp = Math.min(speed,carSpeed);
-        return length/sp;
+        return (int)Math.ceil(length/speed);
     }
     public double getWeigth(int carSpeed,int time){
 

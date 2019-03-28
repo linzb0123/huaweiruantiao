@@ -25,8 +25,12 @@ public class Main {
     public static List<Answer> answers=new ArrayList<>();
     public static LinkedList<Car> carsCache=new LinkedList<>();
     private static final Logger logger = Logger.getLogger(Main.class);
-    public static final int PRETIME = 10;
-    public static final int PRENUM = 20;
+    public static HashMap<Integer,LinkedList<Car>> carInGarage = new HashMap<>();
+    public static HashMap<Integer, Car> carMap = new HashMap<>();
+    public static List<Cross> crossList = new ArrayList<>();
+    public static HashMap<String,List<Integer>> shorPath = new HashMap<>();
+    
+    
     public static void main(String[] args)
     {
         if (args.length != 4) {
@@ -44,25 +48,9 @@ public class Main {
 
         logger.info("start read input files");
         initRead(carPath,roadPath,crossPath);
-        Collections.sort(cars);
-//        for(Car car : cars){
-//            findShortBydijkstra(car);
-//        }
-        int k=-PRETIME;
-        Car c;
-        for(int i=0;i<cars.size();i++){
-           if(i%PRENUM==0){
-               k+=PRETIME;
-           }
-           c= cars.get(i);
-           c.setPlanTime(c.getPlanTime()+k);
-           findShortBydijkstra(c,false);
-        }
-        while(!carsCache.isEmpty()){
-            c = carsCache.pop();
-            c.setPlanTime(c.getPlanTime()+5);
-            findShortBydijkstra(c,true);
-        }
+        init();
+        
+        
         
         logger.info("Start write output file");
         writeAnswer(answerPath);
@@ -70,34 +58,54 @@ public class Main {
         
         logger.info("End...");
     }
-    public static void findShortBydijkstra(Car car,boolean isRpeat){
+    public static void init() {
+        // init car to carInGarage
+        Car c;
+        LinkedList<Car> list;
+        for (Car car : cars) {
+            car.setPath(new Answer(car.getId(),car.getPlanTime()));
+            if((list=carInGarage.get(car.getFrom()))!=null){
+                list.add(car);
+            }else{
+                list = new LinkedList<>();
+                list.add(car);
+                carInGarage.put(car.getFrom(), list);
+            }
+        }
+        
+        for(LinkedList<Car> ls :carInGarage.values()){
+            Collections.sort(ls);
+        }
+        Collections.sort(crossList);
+        
+    }
+    
+    
+    
+    
+    public static void findShortBydijkstra(int start,int end){
         HashSet<Integer> visit = new HashSet<>();
-        HashMap<Integer,Double> dist = new HashMap<>();
+        HashMap<Integer,Integer> dist = new HashMap<>();
         HashMap<Integer,Integer> path = new HashMap<>();
-        int start = car.getFrom();
         visit.add(start);
         Cross startCross = crosses.get(start);
         List<Integer> srids = startCross.getRids();
-        int end = car.getTo();
         for(int i=0;i<srids.size();i++){
             Road r = roads.get(srids.get(i));
             if(r.getIsDuplex()){//双向道路的坑
-                dist.put(r.getTo()==start?r.getFrom():r.getTo(), r.getWeigth(car.getSpeed(),car.getPlanTime(),start));
+                dist.put(r.getTo()==start?r.getFrom():r.getTo(), r.getWeigth());
                 path.put(r.getTo()==start?r.getFrom():r.getTo(), r.getId());
             }else{
                 if(r.getTo()!=start){
-                    dist.put(r.getTo(), r.getWeigth(car.getSpeed(),car.getPlanTime(),start));
+                    dist.put(r.getTo(), r.getWeigth());
                     path.put(r.getTo(), r.getId());
                 }     
             }
             
-//            path.put(r.getFrom(),r.getId());
         }
-        while(visit.size()<crosses.size()){
+        while(visit.size()<=crosses.size()){
             int nextCid = findNextShort(dist,visit);
             visit.add(nextCid);
-//            System.out.println("add visit:"+nextCid);
-//            logger.info("add visit:"+nextCid);
             int to=-1;
             if(nextCid!=-1){
                 Cross nextCross = crosses.get(nextCid);
@@ -112,33 +120,31 @@ public class Main {
                             to = r.getTo();
                         }
                         if(visit.contains(to)) continue;
-                        Double twei = dist.get(to);
+                        Integer twei = dist.get(to);
                         if(twei!=null){
-                            if(r.getWeigth(car.getSpeed(),car.getPlanTime(),nextCid)+dist.get(nextCid)<twei){
-                                twei = r.getWeigth(car.getSpeed(),car.getPlanTime(),nextCid)+dist.get(nextCid);
+                            if(r.getWeigth()+dist.get(nextCid)<twei){
+                                twei = r.getWeigth()+dist.get(nextCid);
                                 dist.put(to, twei);
                                 path.put(to,r.getId());
                             }
                         }else{
-                            dist.put(to, r.getWeigth(car.getSpeed(),car.getPlanTime(),nextCid)+dist.get(nextCid));
+                            dist.put(to, r.getWeigth()+dist.get(nextCid));
                             path.put(to,r.getId());
                         }
-                        //path.put(r.getFrom(),r.getId());
                     }else {
                         to=r.getTo();
                         if(visit.contains(r.getTo())) continue;
-                        Double twei = dist.get(r.getTo());
+                        Integer twei = dist.get(r.getTo());
                         if(twei!=null){
-                            if(r.getWeigth(car.getSpeed())+dist.get(nextCid)<twei){
-                                twei = r.getWeigth(car.getSpeed(),car.getPlanTime(),nextCid)+dist.get(nextCid);
+                            if(r.getWeigth()+dist.get(nextCid)<twei){
+                                twei = r.getWeigth()+dist.get(nextCid);
                                 dist.put(r.getTo(), twei);
                                 path.put(r.getTo(),r.getId());
                             }
                         }else{
-                            dist.put(r.getTo(), r.getWeigth(car.getSpeed(),car.getPlanTime())+dist.get(nextCid));
+                            dist.put(r.getTo(), r.getWeigth()+dist.get(nextCid));
                             path.put(r.getTo(),r.getId());
                         }
-//                        path.put(r.getTo(),r.getId());   
                     }
                     
                 }
@@ -151,15 +157,10 @@ public class Main {
                 System.exit(1);
             }
 //            System.out.println(visit.size());
-            if(visit.contains(end)){
-                if(dist.get(end)>1024){
-                    carsCache.push(car);;
-                    return ;
-                }
-                System.out.println("已经找到最短路径"); 
+            if(visit.size()==crosses.size()){
                 Answer ans = new Answer();
-                ans.setCarId(car.getId());
-                ans.setStartTime(car.getPlanTime());
+//                ans.setCarId(car.getId());
+//                ans.setStartTime(car.getPlanTime());
                 Road r = roads.get(path.get(end));
                 int last=end;//双向道路的坑
                 while(last!=start){
@@ -176,19 +177,20 @@ public class Main {
                     }
                     
                 }
-                
                 answers.add(ans);
-                setBlock(car,ans.getRoadIds(),start);
                 System.out.println(ans.toString());
                 break;
             }
         }
         
+        
+        
+        
     }
-    private static int findNextShort(HashMap<Integer,Double> dist,HashSet<Integer> visit){
+    private static int findNextShort(HashMap<Integer,Integer> dist,HashSet<Integer> visit){
         int cid=-1;
         double minWeight=Double.MAX_VALUE;
-        for(Map.Entry<Integer, Double> entry: dist.entrySet()){
+        for(Map.Entry<Integer, Integer> entry: dist.entrySet()){
             if(!visit.contains(entry.getKey())){
                 if(entry.getValue()<minWeight){
                     minWeight=entry.getValue();

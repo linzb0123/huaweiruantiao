@@ -23,8 +23,7 @@ public class Judge {
     public static List<Answer> answers = new ArrayList<>();
     public static LinkedList<Car> carsCache = new LinkedList<>();
     private static final Logger logger = Logger.getLogger(Main.class);
-//    public static final int PRETIME = 10;
-//    public static final int PRENUM = 200;
+    public static boolean waiting = false;
     public static int carInRoadCnt=0;
     public static int carWaitCnt=0;
     public static int carArriveCnt=0;
@@ -54,22 +53,27 @@ public class Judge {
         System.out.println("开始调度。。。");
         System.out.println(carMap.size());
         int time=0;
-        int driveAllWaitCarCnt=0;//暂时用来退出dead lock
         for(time=0;carArriveCnt!=carMap.size();time++){
             System.out.println("当前时间"+time);
-            driveAllWaitCarCnt=0;
             for(Road r : roads.values()){
-//                System.out.println("调度道路"+r.getId());
                 driveAllCarJustOnRoadToEndState(r,true);
             }
             while(carWaitCnt!=0){
-                if(driveAllWaitCarCnt++>100000){
-                    System.out.println("可能dead lock 了");
+//                System.out.println(carWaitCnt);
+                if(waiting){
+                    System.out.println("Dead lock!!!");
+                    for(Cross cro:crossList){
+                        if(cro.isWait){
+                            System.out.print(cro.getId()+" ");
+                        }
+                    }
+                    System.out.println();
                     System.exit(1);
                 }
-//                System.out.println(carWaitCnt);
+                waiting=true;
                 for(Cross cross : crossList){
 //                    System.out.println("调度路口"+cross.getId());
+                    cross.isWait=true;
                     driveAllWaitCar(cross);
                 }
 //                for(Road r : roads.values()){
@@ -141,7 +145,9 @@ public class Judge {
         Car tmpCar;
         Channel firstChannel = null;
         int tmpDir;
+        int cnt=0;
         // each roads
+        
         while (k<roadsList.size()) {
             road = roadsList.get(k);
             // each channels
@@ -149,8 +155,10 @@ public class Judge {
                 car = road.getFirst(cross.getId());
                 //该道路已经调度完，即没有等待状态
                 if (car == null){
+                    cnt++;
                     break;
                 }
+                cnt=0;
                 firstChannel = road.getFirstChannel(cross.getId());
                 // 到达终点
                 if (car.getTo() == cross.getId()) {
@@ -181,13 +189,6 @@ public class Judge {
                     } else {
                         // 前车是等待状态
                         if (car.getFlag() == Car.WAIT) {
-                            //并查集 等待链来判断是否dead lock
-                            if(chan.channel.getLast().findWaitChain()==car){
-                                System.out.println("dead lock!!!");
-                                System.exit(1);
-                            }else{
-                                car.addToWaitChain(chan.channel.getLast());
-                            }
 //                            
                             break;
                         }
@@ -208,12 +209,6 @@ public class Judge {
                             }
                             tmpDir = cross.getTurnDir(tmpCar.getCurRoadId(), tmpCar.getNextRoadId());
                             if (tmpDir == Cross.STRAIGHT){
-                                if(tmpCar.findWaitChain()==car){
-                                    System.out.println("dead lock!!!");
-                                    System.exit(1);
-                                }else{
-                                    car.addToWaitChain(tmpCar);
-                                }
                                 break;// 冲突
                             }
                                 
@@ -236,14 +231,6 @@ public class Judge {
                     } else {
                         // 前车是等待状态
                         if (car.getFlag() == Car.WAIT) {
-                            //不完善 没效果
-                            //并查集 等待链来判断是否dead lock 
-                            if(chan.channel.getLast().findWaitChain()==car){
-                                System.out.println("dead lock!!!");
-                                System.exit(1);
-                            }else{
-                                car.addToWaitChain(chan.channel.getLast());
-                            }
                             break;
                         }
                         
@@ -265,12 +252,6 @@ public class Judge {
                             }
                             tmpDir = cross.getTurnDir(tmpCar.getCurRoadId(), tmpCar.getNextRoadId());
                             if (tmpDir == Cross.STRAIGHT){
-                                if(tmpCar.findWaitChain()==car){
-                                    System.out.println("dead lock!!!");
-                                    System.exit(1);
-                                }else{
-                                    car.addToWaitChain(tmpCar);
-                                }
                                 break;// 冲突
                             }
                                
@@ -288,12 +269,6 @@ public class Judge {
                             }
                             tmpDir = cross.getTurnDir(tmpCar.getCurRoadId(), tmpCar.getNextRoadId());
                             if (tmpDir == Cross.LEFT){
-                                if(tmpCar.findWaitChain()==car){
-                                    System.out.println("dead lock!!!");
-                                    System.exit(1);
-                                }else{
-                                    car.addToWaitChain(tmpCar);
-                                }
                                 break;// 冲突
                             }
                                
@@ -317,13 +292,6 @@ public class Judge {
                     } else {
                         // 前车是等待状态
                         if (car.getFlag() == Car.WAIT) {
-                            //并查集 等待链来判断是否dead lock
-                            if(chan.channel.getLast().findWaitChain()==car){
-                                System.out.println("dead lock!!!");
-                                System.exit(1);
-                            }else{
-                                car.addToWaitChain(chan.channel.getLast());
-                            }
                             break;
                         }
                     }
@@ -334,6 +302,9 @@ public class Judge {
 
             }
             k++;
+            if(cnt==roadsList.size()){
+                cross.isWait=false;
+            }
         }
         
     }
