@@ -16,11 +16,14 @@ public class Answer {
         this.carId = carId;
         this.startTime = startTime;
     }
-    
+    public Answer(int carId,int startTime,LinkedList<Integer> roadIds){
+        this.roadIds = roadIds;
+        this.carId = carId;
+        this.startTime = startTime;
+    }
     public void addToHead(int rid){
         roadIds.addFirst(rid);
     }
-    
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();

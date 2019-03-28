@@ -21,6 +21,8 @@ public class Cross implements Comparable<Cross>{
     
     public boolean isWait = false;
     
+    public int lockDelayTime = 0;
+    
     public List<Integer> getRids(){
         return rids;
     }
@@ -31,6 +33,44 @@ public class Cross implements Comparable<Cross>{
         if(west!=-1) rids.add(west);
         Collections.sort(rids);
     }
+    public Road getRelaxedChannel(int roadId){
+        Road road;
+        Car car;
+        Channel channel;
+        Road res=null;
+        int cnums = -1;
+        for(int rid:rids){
+            if(rid==roadId) continue;
+            road = Main.roads.get(rid);
+            channel = road.getIntoChannels(id);
+            if((channel==null)){
+                if(cnums==-1){
+                    res = road;
+                    continue;
+                }
+                
+            }else{
+                if(channel.channel.isEmpty()){
+                    cnums=9999;
+                    return road;
+                }else{
+                    if(channel.channel.size()>cnums){
+                        res = road;
+                        cnums = channel.channel.size();
+                    }
+                    
+                }
+            }
+           
+        }
+       
+        if(res==null) {
+            System.err.println("error");
+            System.exit(1);
+        }
+        return res;
+    }
+    
     public int getDirection(int rid){
         if(north==rid) return NORTH;
         if(east==rid) return EAST;

@@ -24,30 +24,26 @@ public class Judge {
     public static LinkedList<Car> carsCache = new LinkedList<>();
     private static final Logger logger = Logger.getLogger(Main.class);
     public static boolean waiting = false;
+    public static boolean isWait = false;
     public static int carInRoadCnt=0;
     public static int carWaitCnt=0;
     public static int carArriveCnt=0;
     public static int carAllCnt=0;
+    
+    public Judge(){
+        
+    }
+    
     public static void main(String[] args) {
-        if (args.length != 4) {
-            logger.error("please input args: inputFilePath, resultFilePath");
-            return;
-        }
-
-        logger.info("Start...");
 
         String carPath = args[0];
         String roadPath = args[1];
         String crossPath = args[2];
         String answerPath = args[3];
-        logger.info("carPath = " + carPath + " roadPath = " + roadPath + " crossPath = " + crossPath
-                + " and answerPath = " + answerPath);
 
-        logger.info("start read input files");
         initRead(carPath, roadPath, crossPath, answerPath);
         init();
         start();
-        logger.info("End...");
     }
     public static void start(){
         System.out.println("开始调度。。。");
@@ -60,17 +56,18 @@ public class Judge {
             }
             while(carWaitCnt!=0){
 //                System.out.println(carWaitCnt);
-                if(waiting){
-                    System.out.println("Dead lock!!!");
+                if(isWait){
+                    waiting = true;
+                    System.out.println("Dead lock!!!2");
                     for(Cross cro:crossList){
                         if(cro.isWait){
                             System.out.print(cro.getId()+" ");
                         }
                     }
                     System.out.println();
-                    System.exit(1);
+//                    System.exit(1);
                 }
-                waiting=true;
+                isWait=true;
                 for(Cross cross : crossList){
 //                    System.out.println("调度路口"+cross.getId());
                     cross.isWait=true;
@@ -86,6 +83,7 @@ public class Judge {
         }
         System.out.println("总调度时间："+(time-1));
     }
+    
     public static void init() {
         // init car
         Car c;
@@ -327,9 +325,6 @@ public class Judge {
                         break;
                     chan.intoNewCar(c);
                     carlist.poll();
-//                    System.out.println(Arrays.toString(chan));
-//                    System.out.println(chan.channel);
-//                    carInRoadCnt++;
                     carAllCnt++;
                     System.out.println("车"+c.getId()+"开始上路 总数："+carAllCnt+"  当前路上有："+(carAllCnt-carArriveCnt)+" 已到达"+carArriveCnt);
                 }else{
@@ -339,6 +334,7 @@ public class Judge {
             
         }   
     }
+    
     public static void initRead(String carPath, String roadPath, String crossPath, String answerPath) {
         File carInput = new File(carPath);
         Scanner sc;

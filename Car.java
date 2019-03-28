@@ -1,7 +1,6 @@
 package com.huawei;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedList;
 
 public class Car implements Comparable<Car>{
     public static final int BEGIN = 0;
@@ -14,7 +13,8 @@ public class Car implements Comparable<Car>{
     private int speed;
     private int planTime;
     public Car waiting;
-    private Answer path;
+    private LinkedList<Integer> shortPath = new LinkedList<>();
+    private LinkedList<Integer> realPath = new LinkedList<>();
     
     private int curRoadDis;//在当前已经道路行驶的距离
    
@@ -30,28 +30,38 @@ public class Car implements Comparable<Car>{
     public void addPos(){
         curPos++;
     }
+    public void setPos(int x){
+        curPos = x;
+    }
+    public void setShortPath(LinkedList<Integer> path){
+        this.shortPath = path;
+    }
+    public void addPath(int roadId){
+        realPath.add(roadId);
+    }
     public int getTime(Road road){
         int sp = Math.min(speed,road.getSpeed());
         return road.getLength()/sp;
         
     }
     public int getCurRoadId(){
-        return path.getRoadIds().get(curPos);
+        return shortPath.get(curPos);
     }
     public int getNextRoadId(){
-        return path.getRoadIds().get(curPos+1);
+        return shortPath.get(curPos+1);
     }
     public void setFlag(int i){
         if(i==WAIT){
             if(this.flag!=WAIT) {
                // System.out.println(id +"  "+ this.flag+" ----> Wait ");
-                Judge.carWaitCnt++;
+                Main.carWaitCnt++;
             }
         }else{
             if(this.flag==WAIT){
                // System.out.println(id +"  "+ this.flag+" ---->  " + i);
-                Judge.carWaitCnt--;
-                Judge.waiting=false;
+                Main.carWaitCnt--;
+                Main.isWait=false;
+                Main.waiting=false;
             }
             waiting=this;
         }
@@ -97,10 +107,11 @@ public class Car implements Comparable<Car>{
         this.planTime = planTime;
     }
     public Answer getPath() {
-        return path;
+//        return path;
+        return null;
     }
     public void setPath(Answer path) {
-        this.path = path;
+//        this.path = path;
     }
     public Car findWaitChain(){
         if(waiting==this){
@@ -118,6 +129,20 @@ public class Car implements Comparable<Car>{
         waiting = this;
     }
     @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append('(');
+        sb.append(id);
+        sb.append(',');
+        sb.append(planTime);
+        for(int id:realPath){
+            sb.append(","+id);
+        }
+        sb.append(')');
+        return sb.toString();
+    }
+    
+    @Override
     public int compareTo(Car o) {
         //速度快的先调度
         //速度一样的计划时间
@@ -127,14 +152,16 @@ public class Car implements Comparable<Car>{
 //        else if(planTime>o.getPlanTime()) return -1;
 //        else
         //按时间调度
-        if(o.path!=null){
-            if(this.path.getStartTime()>o.path.getStartTime())return 1;
-            else if(this.path.getStartTime()<o.path.getStartTime()) return -1;
-            else if(id>o.getId()) return 1;
-            else if(id<o.getId()) return -1;
-            else
-            return 0;
-        }
+
+//        return 0;
+//        if(o.path!=null){
+//            if(this.path.getStartTime()>o.path.getStartTime())return 1;
+//            else if(this.path.getStartTime()<o.path.getStartTime()) return -1;
+//            else if(id>o.getId()) return 1;
+//            else if(id<o.getId()) return -1;
+//            else
+//            return 0;
+//        }
         if(planTime>o.getPlanTime())return 1;
         else if(planTime<o.getPlanTime()) return -1;
         else if(id>o.getId()) return 1;
