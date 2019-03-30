@@ -32,7 +32,9 @@ public class Main {
     public static int carArriveCnt = 0;
     public static int carAllCnt = 0;
     public static int lockDelayTime = 30;
-    
+    public static int carInRoadNum=4540;
+    public static double carInChannel=0.3;
+    public static boolean isMap2 = true;
     public static void main(String[] args) {
 
         if (args.length != 4) {
@@ -53,7 +55,6 @@ public class Main {
         logger.info("start read input files");
         initRead(carPath, roadPath, crossPath);
         init();
-        initShortPath();
         start();
 
         logger.info("Start write output file");
@@ -102,6 +103,11 @@ public class Main {
     }
 
     public static void init() {
+        if(crosses.size()<150){
+            isMap2=false;
+            carInRoadNum = 6000;//4250
+            carInChannel = 0.9;//0.75
+         }
         // init All shortPath
         initShortPath();
         // init car to carInGarage
@@ -122,6 +128,7 @@ public class Main {
             Collections.sort(ls);
         }
         Collections.sort(crossList);
+        
         System.out.println("cross size:" + crossList.size());
         System.out.println("car size:" + cars.size());
         System.out.println("road size:" + roads.size());
@@ -403,7 +410,7 @@ public class Main {
             while (!carlist.isEmpty()) {
                 c = carlist.peek();
 
-                if (c.getPlanTime() <= time && (carAllCnt - carArriveCnt)<4500) {//map2
+                if (c.getPlanTime() <= time && (carAllCnt - carArriveCnt)<carInRoadNum) {//map2
 //                if (c.getPlanTime() <= time && (carAllCnt - carArriveCnt)<4000) {
                     curRoad = roads.get(c.getCurRoadId());
                     chan = curRoad.getIntoChannels(cross.getId());
@@ -416,7 +423,7 @@ public class Main {
                     }
                     sum =  curRoad.getMaxCarNum();
                     has = curRoad.getCurHaveCarNum(cross.getId());
-                    if(has>sum*0.3){//map2
+                    if(has>sum*carInChannel){//map2
 //                      if(has>sum*0.75){
                         break;
                     }

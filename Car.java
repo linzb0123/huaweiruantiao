@@ -162,12 +162,22 @@ public class Car implements Comparable<Car>{
 //            else
 //            return 0;
 //        }
-        if(planTime>o.getPlanTime())return 1;
-        else if(planTime<o.getPlanTime()) return -1;
-        else if(id>o.getId()) return 1;
-        else if(id<o.getId()) return -1;
-        else
-        return 0;
+        if(Main.isMap2){
+            if(planTime>o.getPlanTime())return 1;
+            else if(planTime<o.getPlanTime()) return -1;
+            else if(id>o.getId()) return 1;
+            else if(id<o.getId()) return -1;
+            else
+            return 0;
+        }else{
+          if(speed>o.getSpeed()) return 1;
+          else if(speed<o.getSpeed()) return -1;
+          else if(id>o.getId()) return 1;
+          else if(id<o.getId()) return -1;
+          else
+              return 0;
+        }
+       
     }
     
     
