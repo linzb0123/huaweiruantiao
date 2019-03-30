@@ -148,12 +148,12 @@ public class Car implements Comparable<Car>{
         //速度一样的计划时间
 //        if(speed>o.getSpeed()) return 1;
 //        else if(speed<o.getSpeed()) return -1;
-//        else if(planTime<o.getPlanTime()) return 1;
-//        else if(planTime>o.getPlanTime()) return -1;
+//        else if(id>o.getId()) return 1;
+//        else if(id<o.getId()) return -1;
 //        else
+//            return 0;
         //按时间调度
 
-//        return 0;
 //        if(o.path!=null){
 //            if(this.path.getStartTime()>o.path.getStartTime())return 1;
 //            else if(this.path.getStartTime()<o.path.getStartTime()) return -1;

@@ -65,11 +65,13 @@ public class Main {
     public static void start() {
         System.out.println("开始调度。。。");
         int time = 0;
+        int lockCnt = 0;
         for (time = 0; carArriveCnt != cars.size(); time++) {
             System.out.println("当前时间" + time);
             for (Road r : roads.values()) {
                 driveAllCarJustOnRoadToEndState(r, true);
             }
+            lockCnt=0;
             while (carWaitCnt != 0) {
                 if (isWait) {
                     waiting = true;
@@ -80,8 +82,14 @@ public class Main {
                             cro.lockDelayTime=lockDelayTime;
                         }
                     }
+                    lockCnt++;
+                    if(lockCnt>10000){
+                        System.out.println("Dead Lock!!!");
+                        System.exit(1);
+                    }
 //                    System.out.println("Dead lock!!!");
                 }
+               
                 isWait = true;
                 for (Cross cross : crossList) {
                     cross.isWait = true;
@@ -117,7 +125,7 @@ public class Main {
         System.out.println("cross size:" + crossList.size());
         System.out.println("car size:" + cars.size());
         System.out.println("road size:" + roads.size());
-
+        
     }
 
     public static void initShortPath() {
@@ -188,7 +196,7 @@ public class Main {
                     // 从道路删除
                     road.moveOutRoad(cross.getId());
                     firstChannel.driveCar(false);
-                    System.out.println("arrvie " + carArriveCnt);
+//                    System.out.println("arrvie " + carArriveCnt);
                     car.addPath(road.getId());
                     continue;
                 }
@@ -395,7 +403,8 @@ public class Main {
             while (!carlist.isEmpty()) {
                 c = carlist.peek();
 
-                if (c.getPlanTime() <= time && (carAllCnt - carArriveCnt)<3000) {
+                if (c.getPlanTime() <= time && (carAllCnt - carArriveCnt)<4500) {//map2
+//                if (c.getPlanTime() <= time && (carAllCnt - carArriveCnt)<4000) {
                     curRoad = roads.get(c.getCurRoadId());
                     chan = curRoad.getIntoChannels(cross.getId());
 
@@ -407,7 +416,8 @@ public class Main {
                     }
                     sum =  curRoad.getMaxCarNum();
                     has = curRoad.getCurHaveCarNum(cross.getId());
-                    if(has>sum*0.75){
+                    if(has>sum*0.3){//map2
+//                      if(has>sum*0.75){
                         break;
                     }
                     c.setPlanTime(time);
@@ -546,11 +556,11 @@ public class Main {
         for(int i=0;i<srids.size();i++){
             Road r = roads.get(srids.get(i));
             if(r.getIsDuplex()){//双向道路的坑
-                dist.put(r.getTo()==start?r.getFrom():r.getTo(), r.getWeigth());
+                dist.put(r.getTo()==start?r.getFrom():r.getTo(), r.getWeigth(start));
                 path.put(r.getTo()==start?r.getFrom():r.getTo(), r.getId());
             }else{
                 if(r.getTo()!=start){
-                    dist.put(r.getTo(), r.getWeigth());
+                    dist.put(r.getTo(), r.getWeigth(start));
                     path.put(r.getTo(), r.getId());
                 }     
             }
@@ -578,13 +588,13 @@ public class Main {
                         if(visit.contains(to)) continue;
                         Double twei = dist.get(to);
                         if(twei!=null){
-                            if(r.getWeigth()+dist.get(nextCid)<twei){
-                                twei = r.getWeigth()+dist.get(nextCid);
+                            if(r.getWeigth(start)+dist.get(nextCid)<twei){
+                                twei = r.getWeigth(start)+dist.get(nextCid);
                                 dist.put(to, twei);
                                 path.put(to,r.getId());
                             }
                         }else{
-                            dist.put(to, r.getWeigth());
+                            dist.put(to, r.getWeigth(start));
                             path.put(to,r.getId());
                         }
                         //path.put(r.getFrom(),r.getId());
@@ -593,13 +603,13 @@ public class Main {
                         if(visit.contains(r.getTo())) continue;
                         Double twei = dist.get(r.getTo());
                         if(twei!=null){
-                            if(r.getWeigth()<twei){
-                                twei = r.getWeigth()+dist.get(nextCid);
+                            if(r.getWeigth(start)<twei){
+                                twei = r.getWeigth(start)+dist.get(nextCid);
                                 dist.put(r.getTo(), twei);
                                 path.put(r.getTo(),r.getId());
                             }
                         }else{
-                            dist.put(r.getTo(), r.getWeigth()+dist.get(nextCid));
+                            dist.put(r.getTo(), r.getWeigth(start)+dist.get(nextCid));
                             path.put(r.getTo(),r.getId());
                         }
 //                        path.put(r.getTo(),r.getId());   

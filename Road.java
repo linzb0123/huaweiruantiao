@@ -160,11 +160,13 @@ public class Road implements Comparable<Road>{
     }
     public double getWeigth(){
         if(block) return 999999;
-        return (length*1.0/speed)*Math.pow((99.0/100),getMaxCarNum())*10;
+//        return (length*1.0/speed)*Math.pow((99.0/100),getMaxCarNum())*10;//map1
+        return (length*1.0/speed)*Math.pow((97.0/100),getMaxCarNum())*10;//map2
+//        return length*1.0/speed;
     }
-    public int getWeigth(int carSpeed){
-        int sp = Math.min(speed,carSpeed);
-        return (int)Math.ceil(length/speed);
+    public double getWeigth(int start){
+        if(block) return 999999;
+        return (length*1.0/speed)*10*(getCurHaveCarNum(start)*1.0/getMaxCarNum());
     }
     
     
