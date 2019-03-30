@@ -1,9 +1,11 @@
 package com.huawei;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Random;
+import java.util.LinkedList;
+import java.util.List;
 
-public class Road {
+public class Road implements Comparable<Road>{
     private int id;
     private int length;
     private int speed;
@@ -11,80 +13,171 @@ public class Road {
     private int from;
     private int to;
     private boolean isDuplex;
-    private HashMap<Integer,Integer> fblocking = new HashMap<>();
-    private HashMap<Integer,Integer> tblocking = new HashMap<>();
-//    private int weight;
-//    public static void main(String[] args) {
-//        System.out.println((8/10)*10);
-//    }
-    public void addBlocking(int time,int start){
-        int key = (time/10)*10;
+    
+    private List<Channel> fchannels = new ArrayList<>();//forward
+    private List<Channel> bchannels =new ArrayList<>();//backward 
+    
+    public boolean block=false;
+    
+    private int curFirstChannelId=0;
+    
+    public boolean flag=false;
+    public void init(){
+        for(int i=0;i<channel;i++){
+            fchannels.add(new Channel(this,i));
+        }
         if(isDuplex){
-            if(start==from){
-                int oldValue =  fblocking.getOrDefault(key, 0);
-                fblocking.put(key, oldValue+1);
-            }else{
-                int oldValue =  tblocking.getOrDefault(key, 0);
-                tblocking.put(key, oldValue+1);
+            for(int i=0;i<channel;i++){
+                bchannels.add(new Channel(this,i));
+            }
+        }
+        
+    }
+    public int getMaxCarNum(){
+        return this.channel*this.length;
+    }
+    public int getCurHaveCarNum(int start){
+        int cnt=0;
+        if(start==from){
+            for(Channel x:fchannels){
+                cnt+=x.channel.size();
             }
         }else{
-            int oldValue =  fblocking.getOrDefault(key, 0);
-            fblocking.put(key, oldValue+1);
-        }
-        
-       
-       
-    }
-    public int getWeigth(){
-        return length;
-    }
-    public double getWeigth(int carSpeed){
-        int sp = Math.min(speed,carSpeed);
-        return length/sp;
-    }
-    public double getWeigth(int carSpeed,int time){
-
-//        int sp = Math.min(speed,carSpeed);
-        return getWeigth(carSpeed,time,from);
-        
-    }
-    public double getWeigth(int carSpeed,int time,int start){
-        int key = (time/10)*10;
-        int sp = Math.min(speed,carSpeed);
-        int totalNum = length*channel;
-        int rest;
-        double wei =0.0;
-        if(isDuplex){
-            if(from==start){
-                rest = totalNum-fblocking.getOrDefault(key, 0);
-            }else{
-                rest = totalNum-tblocking.getOrDefault(key, 0);
+            for(Channel x:bchannels){
+                cnt+=x.channel.size();
             }
-            
-        }else{
-            rest = totalNum-fblocking.getOrDefault(key, 0);
         }
-        if(rest>8){
-            wei = length*1.0/sp;
+        return cnt;
+    }
+    //取第一优先级的
+    public Car getFirst(int start){
+        Car c=null;
+        Car res=null;
+        int maxDis=-1;
+        if(start==this.to){
+            for(Channel ch : fchannels){
+                if(ch.channel.isEmpty()) continue;
+                c = ch.channel.getFirst();
+                if(c==null){
+                    continue;
+                }else{
+                    if(c.getFlag()==Car.WAIT){
+                        if(c.getCurRoadDis()>maxDis){
+                            maxDis = c.getCurRoadDis();
+                            res=c;
+                            curFirstChannelId = ch.cid;
+                        }
+//                        return c;
+                    }
+                }
+                
+            }
         }else{
-            wei = length*1.0/sp*Math.pow(2, 8-rest);
+            for(Channel ch : bchannels){
+                if(ch.channel.isEmpty()) continue;
+                c = ch.channel.getFirst();
+                if(c==null){
+                   continue;
+                }else{
+                    if(c.getFlag()==Car.WAIT){
+                        if(c.getCurRoadDis()>maxDis){
+                            maxDis = c.getCurRoadDis();
+                            res=c;
+                            curFirstChannelId = ch.cid;
+                        }
+                    }
+                }
+                
+            }
         }
         
-//        return  length/sp*(length*channel-tblocking.getOrDefault(key, 0))*5;
-        return wei;
+        return res;
     }
-//public static void main(String[] args) {
-//    Road r = new Road();
-//    int x = 10*3;
-//    System.out.println(Math.log10(5));
-//    System.out.println(tanh(0.0/5));
-//}
-    private static double sigmoid(double x){
-        return 1.0/(1+Math.pow(Math.E,-x));
+    
+    public Channel getIntoChannels(int start){
+        Car c;
+        Channel channel=null;
+        if(start==this.from){
+            for(Channel ch : fchannels){
+                if(ch.channel.isEmpty())
+                    return ch;
+                c = ch.channel.getLast();
+                if(c.getFlag()==Car.WAIT){
+                    return ch;
+                }
+                if(c.getCurRoadDis()>1){
+                    channel = ch;
+                    return channel;
+                }
+            }
+        }else{
+            for(Channel ch : bchannels){
+                if(ch.channel.isEmpty())
+                    return ch;
+                c = ch.channel.getLast();
+                if(c.getFlag()==Car.WAIT){
+                    return ch;
+                }
+                if(c.getCurRoadDis()>1){
+                    channel = ch;
+                    return channel;
+                }
+            }
+        }
+        
+        return channel;
     }
-    private static double tanh(double x){
-        return 2.0*sigmoid(2*x)-1;
+    
+    
+    public void moveOutRoad(int start){
+        if(start==this.to){
+            fchannels.get(curFirstChannelId).channel.poll();
+        }else{
+            bchannels.get(curFirstChannelId).channel.poll();
+        }
     }
+    public Channel getFirstChannel(int start){
+        if(start==this.to){
+            return fchannels.get(curFirstChannelId);
+        }else{
+            return bchannels.get(curFirstChannelId);
+        }
+    }
+    
+    
+   
+    public List<Channel> getFchannels() {
+        return fchannels;
+    }
+    public void setFchannels(List<Channel> fchannels) {
+        this.fchannels = fchannels;
+    }
+    public List<Channel> getBchannels() {
+        return bchannels;
+    }
+    public void setBchannels(List<Channel> bchannels) {
+        this.bchannels = bchannels;
+    }
+    public double getWeigth(){
+        if(block) return 999999;
+        if(Main.isMap2){
+            return (length*1.0/speed)*Math.pow((97.0/100),getMaxCarNum())*10;//map2
+        }else{
+          return (length*1.0/speed)*Math.pow((99.0/100),getMaxCarNum())*10;//map2
+        }
+    }
+    public double getWeigth(int start){
+        if(Main.isMap2){
+            if(block) return 999999;
+            return (length*1.0/speed)*10*(getCurHaveCarNum(start)*1.0/getMaxCarNum());
+        }else{
+            if(block) return 999999;
+          return (length*1.0/speed)*Math.pow((99.0/100),getMaxCarNum())*10;
+        }
+       
+    }
+    
+    
     public int getId() {
         return id;
     }
@@ -126,6 +219,12 @@ public class Road {
     }
     public void setIsDuplex(boolean isDuplex) {
         this.isDuplex = isDuplex;
+    }
+
+    @Override
+    public int compareTo(Road o) {
+        // TODO Auto-generated method stub
+        return id-o.id;
     }
   
     
