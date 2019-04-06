@@ -18,7 +18,7 @@ public class Main {
     public static HashMap<Integer,Car> carMap = new HashMap<>();
     public static HashMap<Integer, Road> roads = new HashMap<>();
     public static HashMap<Integer, Cross> crosses = new HashMap<>();
-    private static final Logger logger = Logger.getLogger(MainOld.class);
+    private static final Logger logger = Logger.getLogger(Main.class);
     public static HashMap<Integer, LinkedList<Car>> carInGarage = new HashMap<>();
     public static List<Cross> crossList = new ArrayList<>();
     public static void main(String[] args)

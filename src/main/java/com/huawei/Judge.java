@@ -22,7 +22,7 @@ public class Judge {
     public static HashMap<Integer, LinkedList<Car>> carInGarage = new HashMap<>();
     public static List<Answer> answers = new ArrayList<>();
     public static LinkedList<Car> carsCache = new LinkedList<>();
-    private static final Logger logger = Logger.getLogger(MainOld.class);
+    private static final Logger logger = Logger.getLogger(Judge.class);
     public static boolean waiting = false;
     public static boolean isWait = false;
     public static int carInRoadCnt = 0;
