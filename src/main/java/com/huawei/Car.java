@@ -12,6 +12,10 @@ public class Car implements Comparable<Car>{
     private int to;
     private int speed;
     private int planTime;
+    private int realTime;
+    private int arriveTime;
+    private boolean proiority;
+    private boolean preset;
     public Car waiting;
     private LinkedList<Integer> shortPath = new LinkedList<>();
     private LinkedList<Integer> realPath = new LinkedList<>();
@@ -23,6 +27,16 @@ public class Car implements Comparable<Car>{
     private int curPos=0; // 当前的位置（道路）
     public Car(){
         waiting=this;
+        curPos = 0;
+    }
+    public void setArriveTime(int arriveTime){
+        this.arriveTime = arriveTime;
+    }
+    public int getArriveTime(){
+        return this.arriveTime;
+    }
+    public void setRealPath(LinkedList<Integer> path){
+        this.realPath = path;
     }
     public void moveDistance(int dis){
         curRoadDis+=dis;
@@ -39,29 +53,50 @@ public class Car implements Comparable<Car>{
     public void addPath(int roadId){
         realPath.add(roadId);
     }
+    
     public int getTime(Road road){
         int sp = Math.min(speed,road.getSpeed());
         return road.getLength()/sp;
         
     }
+    
+    
+    public int getRealTime() {
+        return realTime;
+    }
+    public void setRealTime(int realTime) {
+        this.realTime = realTime;
+    }
+    public boolean isProiority() {
+        return proiority;
+    }
+    public void setProiority(boolean proiority) {
+        this.proiority = proiority;
+    }
+    public boolean isPreset() {
+        return preset;
+    }
+    public void setPreset(boolean preset) {
+        this.preset = preset;
+    }
     public int getCurRoadId(){
-        return shortPath.get(curPos);
+        return realPath.get(curPos);
     }
     public int getNextRoadId(){
-        return shortPath.get(curPos+1);
+        return realPath.get(curPos+1);
     }
     public void setFlag(int i){
         if(i==WAIT){
             if(this.flag!=WAIT) {
                // System.out.println(id +"  "+ this.flag+" ----> Wait ");
-                Main.carWaitCnt++;
+                Judge.carWaitCnt++;
             }
         }else{
             if(this.flag==WAIT){
                // System.out.println(id +"  "+ this.flag+" ---->  " + i);
-                Main.carWaitCnt--;
-                Main.isWait=false;
-                Main.waiting=false;
+                Judge.carWaitCnt--;
+                Judge.isWait=false;
+                Judge.waiting=false;
             }
             waiting=this;
         }
@@ -106,27 +141,14 @@ public class Car implements Comparable<Car>{
     public void setPlanTime(int planTime) {
         this.planTime = planTime;
     }
-    public Answer getPath() {
-//        return path;
-        return null;
-    }
-    public void setPath(Answer path) {
-//        this.path = path;
+    public LinkedList<Integer> getPath() {
+        return realPath;
     }
     public Car findWaitChain(){
         if(waiting==this){
             return this;
         }
         return waiting.findWaitChain();
-    }
-    public void addToWaitChain(Car c){
-        waiting = c.findWaitChain();
-    }
-//    public void outputWaitChain(){
-//        System.out.print(this.id+" ");
-//    }
-    public void setWaitSeft(){
-        waiting = this;
     }
     @Override
     public String toString() {
@@ -162,23 +184,43 @@ public class Car implements Comparable<Car>{
 //            else
 //            return 0;
 //        }
-        if(Main.isMap2){
-            if(planTime>o.getPlanTime())return 1;
-            else if(planTime<o.getPlanTime()) return -1;
-            else if(id>o.getId()) return 1;
-            else if(id<o.getId()) return -1;
-            else
-            return 0;
-        }else{
-          if(speed>o.getSpeed()) return 1;
-          else if(speed<o.getSpeed()) return -1;
+//        if(MainOld.isMap2){
+//            if(planTime>o.getPlanTime())return 1;
+//            else if(planTime<o.getPlanTime()) return -1;
+//            else if(id>o.getId()) return 1;
+//            else if(id<o.getId()) return -1;
+//            else
+//            return 0;
+//        }else{
+//          if(speed>o.getSpeed()) return 1;
+//          else if(speed<o.getSpeed()) return -1;
+//          else if(id>o.getId()) return 1;
+//          else if(id<o.getId()) return -1;
+//          else
+//              return 0;
+//        }
+      if(proiority==true&&o.isProiority()==false){
+          return -1; 
+      }else if(proiority==true&&o.isProiority()==true){
+          if(realTime>o.getRealTime())return 1;
+          else if(realTime<o.getRealTime()) return -1;
           else if(id>o.getId()) return 1;
           else if(id<o.getId()) return -1;
           else
-              return 0;
-        }
-       
+          return 0;
+      }else if(proiority==false&&o.isProiority()==false){
+          if(realTime>o.getRealTime())return 1;
+          else if(realTime<o.getRealTime()) return -1;
+          else if(id>o.getId()) return 1;
+          else if(id<o.getId()) return -1;
+          else
+          return 0;
+      }else{
+          return 1;
+      }
+      
     }
+    
     
     
 }

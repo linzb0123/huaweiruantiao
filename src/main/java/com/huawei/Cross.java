@@ -41,7 +41,7 @@ public class Cross implements Comparable<Cross>{
         int cnums = -1;
         for(int rid:rids){
             if(rid==roadId) continue;
-            road = Main.roads.get(rid);
+            road = Judge.roads.get(rid);
             channel = road.getIntoChannels(id);
             if((channel==null)){
                 if(cnums==-1){
@@ -160,6 +160,26 @@ public class Cross implements Comparable<Cross>{
         System.err.println("error dir: to"+to);
         System.exit(1);
         return 0;
+    }
+    //到终点看作直行，直行的方面如果没路，则不会和优先车辆冲突
+    public int getTidByByStraight(int curRid){
+        int from = getDirection(curRid);
+        if(from==NORTH){
+            return south;
+        }
+        if(from==EAST){
+            return west;
+        } 
+        if(from==SOUTH){
+            return north;
+        } 
+        
+        if(from==WEST){
+            return east;
+        } 
+        System.out.println("error： cross getTidByByStraight");
+        System.exit(1);
+        return -1;
     }
     public int getId() {
         return id;

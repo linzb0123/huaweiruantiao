@@ -19,7 +19,8 @@ public class Road implements Comparable<Road>{
     
     public boolean block=false;
     
-    private int curFirstChannelId=0;
+    private int fcurFirstChannelId=0;
+    private int bcurFirstChannelId=0;
     
     public boolean flag=false;
     public void init(){
@@ -54,6 +55,7 @@ public class Road implements Comparable<Road>{
         Car c=null;
         Car res=null;
         int maxDis=-1;
+        boolean proiority=false;
         if(start==this.to){
             for(Channel ch : fchannels){
                 if(ch.channel.isEmpty()) continue;
@@ -62,12 +64,35 @@ public class Road implements Comparable<Road>{
                     continue;
                 }else{
                     if(c.getFlag()==Car.WAIT){
-                        if(c.getCurRoadDis()>maxDis){
-                            maxDis = c.getCurRoadDis();
-                            res=c;
-                            curFirstChannelId = ch.cid;
+                        //当前还没有优先车辆
+                        if(!proiority){
+                          //设置优先车
+                            if(c.isProiority()){
+                                maxDis = c.getCurRoadDis();
+                                res=c;
+                                fcurFirstChannelId = ch.cid;
+                                proiority=true;
+                            }else{
+                                //否则判断距离
+                                if(c.getCurRoadDis()>maxDis){
+                                    maxDis = c.getCurRoadDis();
+                                    res=c;
+                                    fcurFirstChannelId = ch.cid;
+                                }
+                            }
+                            
+                        }else{
+                            //只选择优先车
+                            if(c.isProiority()){
+                                if(c.getCurRoadDis()>maxDis){
+                                    maxDis = c.getCurRoadDis();
+                                    res=c;
+                                    fcurFirstChannelId = ch.cid;
+                                }
+                               
+                            }
                         }
-//                        return c;
+                        
                     }
                 }
                 
@@ -80,11 +105,35 @@ public class Road implements Comparable<Road>{
                    continue;
                 }else{
                     if(c.getFlag()==Car.WAIT){
-                        if(c.getCurRoadDis()>maxDis){
-                            maxDis = c.getCurRoadDis();
-                            res=c;
-                            curFirstChannelId = ch.cid;
+                        //当前还没有优先车辆
+                        if(!proiority){
+                          //设置优先车
+                            if(c.isProiority()){
+                                maxDis = c.getCurRoadDis();
+                                res=c;
+                                bcurFirstChannelId = ch.cid;
+                                proiority=true;
+                            }else{
+                                //否则判断距离
+                                if(c.getCurRoadDis()>maxDis){
+                                    maxDis = c.getCurRoadDis();
+                                    res=c;
+                                    bcurFirstChannelId = ch.cid;
+                                }
+                            }
+                            
+                        }else{
+                            //只选择优先车
+                            if(c.isProiority()){
+                                if(c.getCurRoadDis()>maxDis){
+                                    maxDis = c.getCurRoadDis();
+                                    res=c;
+                                    bcurFirstChannelId = ch.cid;
+                                }
+                               
+                            }
                         }
+                        
                     }
                 }
                 
@@ -129,18 +178,19 @@ public class Road implements Comparable<Road>{
     }
     
     
-    public void moveOutRoad(int start){
-        if(start==this.to){
-            fchannels.get(curFirstChannelId).channel.poll();
-        }else{
-            bchannels.get(curFirstChannelId).channel.poll();
-        }
-    }
+//    public void moveOutRoad(int start){
+//        if(start==this.to){
+//            fchannels.get(curFirstChannelId).channel.poll();
+//        }else{
+//            bchannels.get(curFirstChannelId).channel.poll();
+//        }
+//    }
+    //与getFirst连用
     public Channel getFirstChannel(int start){
         if(start==this.to){
-            return fchannels.get(curFirstChannelId);
+            return fchannels.get(fcurFirstChannelId);
         }else{
-            return bchannels.get(curFirstChannelId);
+            return bchannels.get(bcurFirstChannelId);
         }
     }
     
@@ -160,14 +210,14 @@ public class Road implements Comparable<Road>{
     }
     public double getWeigth(){
         if(block) return 999999;
-        if(Main.isMap2){
+        if(MainOld.isMap2){
             return (length*1.0/speed)*Math.pow((97.0/100),getMaxCarNum())*10;//map2
         }else{
           return (length*1.0/speed)*Math.pow((99.0/100),getMaxCarNum())*10;//map2
         }
     }
     public double getWeigth(int start){
-        if(Main.isMap2){
+        if(MainOld.isMap2){
             if(block) return 999999;
             return (length*1.0/speed)*10*(getCurHaveCarNum(start)*1.0/getMaxCarNum());
         }else{
