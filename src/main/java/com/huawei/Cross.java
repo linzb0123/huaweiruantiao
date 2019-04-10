@@ -18,13 +18,26 @@ public class Cross implements Comparable<Cross>{
     private int south;
     private int west;
     private List<Integer> rids = new ArrayList<>();
-    
+    private List<Road> roadList = null;
     public boolean isWait = false;
     
     public int lockDelayTime = 0;
     
     public List<Integer> getRids(){
         return rids;
+    }
+    public List<Road> getRoadList(){
+        if(roadList==null){
+            List<Road> roadsList2 = new ArrayList<>();
+            for (int id : rids) {
+                roadsList2.add(Main.roads.get(id));
+            }
+            roadList = roadsList2;
+        }
+        return roadList;
+    }
+    public void setRoadList(List<Road> list){
+        this.roadList = list;
     }
     public void initRids(){
         if(north!=-1) rids.add(north);
@@ -33,6 +46,25 @@ public class Cross implements Comparable<Cross>{
         if(west!=-1) rids.add(west);
         Collections.sort(rids);
     }
+    /**
+     * 路口所有入口道路车的数量
+     * @return
+     */
+    public int getCurCarNum(){
+        int cnt = 0;
+        for(Road r : roadList){
+            cnt+=r.getCurHaveCarNum(this.id);
+        }
+        return cnt;
+    }
+    public int getMaxCarNum(){
+        int cnt = 0;
+        for(Road r : roadList){
+            cnt+=r.getChannel()*r.getLength();
+        }
+        return cnt;
+    }
+    
     public Road getRelaxedChannel(int roadId){
         Road road;
         Car car;
@@ -41,7 +73,7 @@ public class Cross implements Comparable<Cross>{
         int cnums = -1;
         for(int rid:rids){
             if(rid==roadId) continue;
-            road = Judge.roads.get(rid);
+            road = Main.roads.get(rid);
             channel = road.getIntoChannels(id);
             if((channel==null)){
                 if(cnums==-1){
@@ -51,14 +83,16 @@ public class Cross implements Comparable<Cross>{
                 
             }else{
                 if(channel.channel.isEmpty()){
-                    cnums=9999;
+                    cnums=99999;
                     return road;
+                }else if(channel.channel.getLast().getFlag()==Car.END){
+                    cnums=9999;
+                    res = road;
                 }else{
                     if(channel.channel.size()>cnums){
                         res = road;
                         cnums = channel.channel.size();
                     }
-                    
                 }
             }
            

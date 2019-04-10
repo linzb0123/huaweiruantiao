@@ -163,7 +163,7 @@ public class Judge {
                     cnt++;
                     break;
                 }
-                firstChannel = road.getFirstChannel(cross.getId());
+                firstChannel = car.getChannel();
                 // 判断是否到达终点
                 if (car.getTo() == cross.getId()) {
                     // 不是优先车辆

@@ -1,6 +1,7 @@
 package com.huawei;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -16,6 +17,9 @@ public class Road implements Comparable<Road> {
 
     private List<Channel> fchannels = new ArrayList<>();// forward
     private List<Channel> bchannels = new ArrayList<>();// backward
+    
+    List<Car> fcarSeq = new ArrayList<>();
+    List<Car> bcarSeq = new ArrayList<>();
 
     public boolean block = false;
 
@@ -23,6 +27,8 @@ public class Road implements Comparable<Road> {
     private int bcurFirstChannelId = 0;
 
     public boolean flag = false;
+    
+    public int mark;
 
     public void init() {
         for (int i = 0; i < channel; i++) {
@@ -53,102 +59,181 @@ public class Road implements Comparable<Road> {
         }
         return cnt;
     }
-
+    public boolean isAccessibleInto(int crossId){
+        if(isDuplex)return true;
+        if(crossId == from) return true;
+        return false;
+    }
+    public int getNextCrossId(int crossId){
+        if(from == crossId){
+            return to;
+        }else{
+            return from;
+        }
+    }
     // 取第一优先级的
     public Car getFirst(int start) {
-        Car c = null;
-        Car res = null;
-        int maxDis = -1;
-        boolean proiority = false;
-        if (start == this.to) {
-            for (Channel ch : fchannels) {
-                if (ch.channel.isEmpty())
-                    continue;
-                c = ch.channel.getFirst();
-                if (c == null) {
-                    continue;
-                } else {
-                    if (c.getFlag() == Car.WAIT) {
-                        // 当前还没有优先车辆
-                        if (!proiority) {
-                            // 设置优先车
-                            if (c.isProiority()) {
-                                maxDis = c.getCurRoadDis();
-                                res = c;
-                                fcurFirstChannelId = ch.cid;
-                                proiority = true;
-                            } else {
-                                // 否则判断距离
-                                if (c.getCurRoadDis() > maxDis) {
-                                    maxDis = c.getCurRoadDis();
-                                    res = c;
-                                    fcurFirstChannelId = ch.cid;
-                                }
-                            }
+//        Car c = null;
+//        Car res = null;
+//        int maxDis = -1;
+//        boolean proiority = false;
+//        if (start == this.to) {
+//            for (Channel ch : fchannels) {
+//                if (ch.channel.isEmpty())
+//                    continue;
+//                c = ch.channel.getFirst();
+//                if (c == null) {
+//                    continue;
+//                } else {
+//                    if (c.getFlag() == Car.WAIT) {
+//                        // 当前还没有优先车辆
+//                        if (!proiority) {
+//                            // 设置优先车
+//                            if (c.isProiority()) {
+//                                maxDis = c.getCurRoadDis();
+//                                res = c;
+//                                fcurFirstChannelId = ch.cid;
+//                                proiority = true;
+//                            } else {
+//                                // 否则判断距离
+//                                if (c.getCurRoadDis() > maxDis) {
+//                                    maxDis = c.getCurRoadDis();
+//                                    res = c;
+//                                    fcurFirstChannelId = ch.cid;
+//                                }
+//                            }
+//
+//                        } else {
+//                            // 只选择优先车
+//                            if (c.isProiority()) {
+//                                if (c.getCurRoadDis() > maxDis) {
+//                                    maxDis = c.getCurRoadDis();
+//                                    res = c;
+//                                    fcurFirstChannelId = ch.cid;
+//                                }
+//
+//                            }
+//                        }
+//
+//                    }
+//                }
+//
+//            }
+//        } else {
+//            for (Channel ch : bchannels) {
+//                if (ch.channel.isEmpty())
+//                    continue;
+//                c = ch.channel.getFirst();
+//                if (c == null) {
+//                    continue;
+//                } else {
+//                    if (c.getFlag() == Car.WAIT) {
+//                        // 当前还没有优先车辆
+//                        if (!proiority) {
+//                            // 设置优先车
+//                            if (c.isProiority()) {
+//                                maxDis = c.getCurRoadDis();
+//                                res = c;
+//                                bcurFirstChannelId = ch.cid;
+//                                proiority = true;
+//                            } else {
+//                                // 否则判断距离
+//                                if (c.getCurRoadDis() > maxDis) {
+//                                    maxDis = c.getCurRoadDis();
+//                                    res = c;
+//                                    bcurFirstChannelId = ch.cid;
+//                                }
+//                            }
+//
+//                        } else {
+//                            // 只选择优先车
+//                            if (c.isProiority()) {
+//                                if (c.getCurRoadDis() > maxDis) {
+//                                    maxDis = c.getCurRoadDis();
+//                                    res = c;
+//                                    bcurFirstChannelId = ch.cid;
+//                                }
+//
+//                            }
+//                        }
+//
+//                    }
+//                }
+//
+//            }
+//        }
 
-                        } else {
-                            // 只选择优先车
-                            if (c.isProiority()) {
-                                if (c.getCurRoadDis() > maxDis) {
-                                    maxDis = c.getCurRoadDis();
-                                    res = c;
-                                    fcurFirstChannelId = ch.cid;
-                                }
-
-                            }
-                        }
-
-                    }
-                }
-
+//        return res;
+        if(start==this.to){
+            if(!fcarSeq.isEmpty()){
+                return fcarSeq.get(0);
             }
-        } else {
-            for (Channel ch : bchannels) {
-                if (ch.channel.isEmpty())
-                    continue;
-                c = ch.channel.getFirst();
-                if (c == null) {
-                    continue;
-                } else {
-                    if (c.getFlag() == Car.WAIT) {
-                        // 当前还没有优先车辆
-                        if (!proiority) {
-                            // 设置优先车
-                            if (c.isProiority()) {
-                                maxDis = c.getCurRoadDis();
-                                res = c;
-                                bcurFirstChannelId = ch.cid;
-                                proiority = true;
-                            } else {
-                                // 否则判断距离
-                                if (c.getCurRoadDis() > maxDis) {
-                                    maxDis = c.getCurRoadDis();
-                                    res = c;
-                                    bcurFirstChannelId = ch.cid;
-                                }
-                            }
-
-                        } else {
-                            // 只选择优先车
-                            if (c.isProiority()) {
-                                if (c.getCurRoadDis() > maxDis) {
-                                    maxDis = c.getCurRoadDis();
-                                    res = c;
-                                    bcurFirstChannelId = ch.cid;
-                                }
-
-                            }
-                        }
-
-                    }
-                }
-
+            return null;
+        }else{
+            if(!bcarSeq.isEmpty()){
+                return bcarSeq.get(0);
             }
+            return null;
         }
-
-        return res;
     }
 
+    public void createCarSequeue(int start){
+        List<Car> carSeq;
+        List<Channel> chs;
+        Car tmpCar;
+       if(start==this.to){
+           chs=fchannels;
+           carSeq = fcarSeq;
+       }else{
+           chs=bchannels;
+           carSeq = bcarSeq;
+       }
+       carSeq.clear();
+       for(Channel ch :chs){
+           if(!ch.channel.isEmpty()){
+               tmpCar = ch.channel.getFirst();
+               tmpCar.setChannel(ch);
+               if(tmpCar.getFlag()==Car.WAIT){
+                   carSeq.add(tmpCar);
+               }
+           }
+       }
+       Car firstCar=null;
+       if(!carSeq.isEmpty())
+           firstCar = carSeq.get(0);
+       if(carSeq.size()>=2){
+         //排序
+           carSeq.sort((Car c1,Car c2)->{
+               if(c1.isProiority()&&!c2.isProiority()){
+                   return -1; 
+               }else if(c1.isProiority()&&c2.isProiority()){
+                   if(c1.getCurRoadDis()>c2.getCurRoadDis())return -1;
+                   else if(c1.getCurRoadDis()<c2.getCurRoadDis()) return 1;
+                   else if(c1.getChannel().cid>c2.getChannel().cid) return 1;
+                   else if(c1.getChannel().cid<c2.getChannel().cid) return -1;
+                   else
+                   return 0;
+               }else if(!c1.isProiority()&&!c2.isProiority()){
+                   if(c1.getCurRoadDis()>c2.getCurRoadDis())return -1;
+                   else if(c1.getCurRoadDis()<c2.getCurRoadDis()) return 1;
+                   else if(c1.getChannel().cid>c2.getChannel().cid) return 1;
+                   else if(c1.getChannel().cid<c2.getChannel().cid) return -1;
+                   else
+                   return 0;
+               }else{
+                   return 1;
+               }
+           });
+           //waiting
+           
+           for(int i=1;i<carSeq.size();i++){
+               carSeq.get(i).waiting=firstCar;
+           }
+       }
+      
+      
+    }
+    
     public Channel getIntoChannels(int start) {
         Car c;
         Channel channel = null;
@@ -191,13 +276,13 @@ public class Road implements Comparable<Road> {
     // }
     // }
     // 与getFirst连用
-    public Channel getFirstChannel(int start) {
-        if (start == this.to) {
-            return fchannels.get(fcurFirstChannelId);
-        } else {
-            return bchannels.get(bcurFirstChannelId);
-        }
-    }
+//    public Channel getFirstChannel(Car) {
+////        if (start == this.to) {
+////            return fchannels.get(fcurFirstChannelId);
+////        } else {
+////            return bchannels.get(bcurFirstChannelId);
+////        }
+//    }
 
     public List<Channel> getFchannels() {
         return fchannels;
@@ -216,14 +301,10 @@ public class Road implements Comparable<Road> {
     }
 
     public double getWeigth() {
-        if (block)
-            return 999999;
-        return (length * 1.0 / speed) * Math.pow((97.0 / 100), getMaxCarNum()) * 10;// map2
+        return length;
     }
 
     public double getWeigth(int start) {
-        if (block)
-            return 999999;
         return (length * 1.0 / speed) * 10 * (getCurHaveCarNum(start) * 1.0 / getMaxCarNum());
     }
 

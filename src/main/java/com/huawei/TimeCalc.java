@@ -54,9 +54,9 @@ public class TimeCalc {
                 priminSpeed = Math.min(priminSpeed, c.getSpeed());
                 priMaxStartTime = Math.max(priMaxStartTime, c.getPlanTime());
                 priMinStartTime = Math.min(priMinStartTime, c.getPlanTime());
-                tSumPri+= (c.getArriveTime() - c.getPlanTime());
                 minPriTime = Math.min(minPriTime, c.getPlanTime());
                 maxPriTime = Math.max(maxPriTime, c.getArriveTime());
+                tSumPri+= (c.getArriveTime() - c.getPlanTime());
                 priCnt++;
             }
         }
@@ -66,12 +66,12 @@ public class TimeCalc {
                 (maxStartTime*1.0/minStartTime)/(priMaxStartTime*1.0/priMinStartTime)*0.2375+
                 allstart.size()*1.0/pristart.size()*0.2375+
                 allend.size()*1.0/priend.size()*0.2375;
+        
         double b = (cars.size()*1.0/priCnt)*0.8+
                 (maxSpeed*1.0/minSpeed)/(priMaxSpeed*1.0/priminSpeed)*0.05+
                 (maxStartTime*1.0/minStartTime)/(priMaxStartTime*1.0/priMinStartTime)*0.05+
                 allstart.size()*1.0/pristart.size()*0.05+
                 allend.size()*1.0/priend.size()*0.05;
-        
        tE = (int)Math.round(a*tPri)+time;
        tESum = (int)Math.round(b*tSumPri)+tSum;
         

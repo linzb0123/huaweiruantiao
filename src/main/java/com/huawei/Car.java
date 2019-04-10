@@ -25,9 +25,23 @@ public class Car implements Comparable<Car>{
     private int flag=BEGIN;
     
     private int curPos=0; // 当前的位置（道路）
+    private Channel curCh;
+    public boolean isVisit=false;
     public Car(){
         waiting=this;
         curPos = 0;
+    }
+//    public Car(int dis,boolean pri,Channel ch){
+//        this.curRoadDis=dis;
+//        this.proiority=pri;
+//        this.curCh=ch;
+//        curPos = 0;
+//    }
+    public void setChannel(Channel ch){
+        this.curCh = ch;
+    }
+    public Channel getChannel(){
+        return this.curCh;
     }
     public void setArriveTime(int arriveTime){
         this.arriveTime = arriveTime;
@@ -53,13 +67,15 @@ public class Car implements Comparable<Car>{
     public void addPath(int roadId){
         realPath.add(roadId);
     }
-    
+    public void replaceLastPath(int roadId){
+        realPath.removeLast();
+        realPath.add(roadId);
+    }
     public int getTime(Road road){
         int sp = Math.min(speed,road.getSpeed());
         return road.getLength()/sp;
         
     }
-    
     
     public int getRealTime() {
         return realTime;
@@ -83,20 +99,21 @@ public class Car implements Comparable<Car>{
         return realPath.get(curPos);
     }
     public int getNextRoadId(){
+        if(curPos+1>=realPath.size()) return -1;
         return realPath.get(curPos+1);
     }
     public void setFlag(int i){
         if(i==WAIT){
             if(this.flag!=WAIT) {
                // System.out.println(id +"  "+ this.flag+" ----> Wait ");
-                Judge.carWaitCnt++;
+                Main.carWaitCnt++;
             }
         }else{
             if(this.flag==WAIT){
                // System.out.println(id +"  "+ this.flag+" ---->  " + i);
-                Judge.carWaitCnt--;
-                Judge.isWait=false;
-                Judge.waiting=false;
+                Main.carWaitCnt--;
+                Main.isWait=false;
+                Main.waiting=false;
             }
             waiting=this;
         }
@@ -109,6 +126,7 @@ public class Car implements Comparable<Car>{
         return curRoadDis;
     }
     public void setCurRoadDis(int dis) {
+        
         this.curRoadDis = dis;
     }
     public int getId() {
@@ -145,23 +163,36 @@ public class Car implements Comparable<Car>{
         return realPath;
     }
     public Car findWaitChain(){
-        if(waiting==this){
+        if(isVisit){
+            isVisit=false;
+            return null;
+        }
+        isVisit=true;
+        if(waiting.equals(this)){
             return this;
         }
-        return waiting.findWaitChain();
+        Car c = waiting.findWaitChain();
+        isVisit=false;
+        return c;
     }
+   
     @Override
     public String toString() {
         StringBuilder sb = new StringBuilder();
         sb.append('(');
         sb.append(id);
         sb.append(',');
-        sb.append(planTime);
+        sb.append(realTime);
         for(int id:realPath){
             sb.append(","+id);
         }
         sb.append(')');
         return sb.toString();
+    }
+    @Override
+    public boolean equals(Object obj) {
+        
+        return id == ((Car)obj).getId();
     }
     
     @Override
