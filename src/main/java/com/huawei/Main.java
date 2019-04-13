@@ -111,11 +111,13 @@ public class Main {
 //                logger.info(r);
 //            }
         }
+        System.out.println(modPresetCnt);
         TimeCalc tc = new TimeCalc(time-1, cars);
         tc.calc();
         System.out.println("调度时间：" + (time - 1)+"    "+tc.tSum);
         System.out.println(tc.tPri+"    "+tc.tSumPri);
         System.out.println(tc.tE+"   " + tc.tESum);
+        
         
     }
     public static void init() {
@@ -431,7 +433,7 @@ public class Main {
                         if(presetCnt==0){
                             if((carAllCnt - carArriveCnt)>3000) break;
                         }else{
-                            if((carAllCnt - carArriveCnt)>800) continue;
+                            if((carAllCnt - carArriveCnt)>700) continue;
                         }
                         
                         if(has>sum*0.2){
@@ -596,18 +598,18 @@ public class Main {
             }
             tmpCar = ch.channel.getLast();
             if(tmpCar.getFlag()==Car.WAIT){
-                Car cc;
-                if((cc=tmpCar.findWaitChain())==null||car.equals(cc)){
-                    //成环 死锁
-                    System.out.println("----");
-//                    processDeadLock();
-                    cross.lockDelayTime=10;
-                    blockRoad(tmpCar.getWaitRoadSet());
-                    continue;
-                }else{
-                    if(k==0) res = r;
-                }
-//                if(k==0) res = r;
+//                Car cc;
+//                if((cc=tmpCar.findWaitChain())==null||car.equals(cc)){
+//                    //成环 死锁
+//                    System.out.println("----");
+////                    processDeadLock();
+//                    cross.lockDelayTime=10;
+//                    blockRoad(tmpCar.getWaitRoadSet());
+//                    continue;
+//                }else{
+//                    if(k==0) res = r;
+//                }
+                if(k==0) res = r;
             }
 //            return r;
         }
