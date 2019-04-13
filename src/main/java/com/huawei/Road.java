@@ -210,7 +210,7 @@ public class Road implements Comparable<Road> {
 
     public int getWeigth() {
         if(block) return length*10;
-        if(channel==1) return length*2;
+        if(channel==1) return length*3;
         return length;
     }
 

@@ -124,7 +124,10 @@ public class Main {
 //         init car to carInGarage
         Car c;
         LinkedList<Car> list;
+        
         modPresetCnt = (int)Math.floor(presetCnt*0.1);
+        System.out.println(presetCnt);
+        System.out.println(modPresetCnt);
         for (Car car : cars) {
             if(!car.isPreset())
                 //方便排序
@@ -342,8 +345,8 @@ public class Main {
                        }
                    }
                    road.block=true;
-//                   nextRoad = cross.getRelaxedChannel(road.getId());
-                   nextRoad = findNextPath(cross, road, car);
+                   nextRoad = cross.getRelaxedChannel(road.getId());
+//                   nextRoad = findNextPath(cross, road, car);
                    car.addPath(nextRoad.getId());
                    cross.lockDelayTime=20;
                    continue;
@@ -428,7 +431,7 @@ public class Main {
                         if(presetCnt==0){
                             if((carAllCnt - carArriveCnt)>3000) break;
                         }else{
-                            if((carAllCnt - carArriveCnt)>1000) continue;
+                            if((carAllCnt - carArriveCnt)>800) continue;
                         }
                         
                         if(has>sum*0.2){
