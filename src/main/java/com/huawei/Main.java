@@ -5,20 +5,20 @@ import java.io.FileNotFoundException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
 public class Main {
-    private static final Logger logger = Logger.getLogger(Main.class);
+//    private static final Logger logger = Logger.getLogger(Main.class);
     public static List<Car> cars = new ArrayList<>();
     public static HashMap<Integer,Car> carMap = new HashMap<>();
     public static HashMap<Integer, Road> roads = new HashMap<>();
@@ -33,7 +33,9 @@ public class Main {
     public static int carAllCnt = 0;
     public static int presetCnt = 0;
     public static int time = 0;
-    public static int cctime=50;
+    public static int cctime=30;
+    public static int ROADBLOCKTIME = 5;
+    public static int modPresetCnt = 0;
     //保存某点到某点的最短路径距离
     public static HashMap<Integer,HashMap<Integer,Integer>> shorPathMap = new HashMap<>();
     
@@ -44,7 +46,7 @@ public class Main {
             return;
         }
 
-        logger.info("Start...");
+//        logger.info("Start...");
 
         String carPath = args[0];
         String roadPath = args[1];
@@ -68,11 +70,11 @@ public class Main {
             }
             //优先车上路
             driveCarInitList(true);
+            createCarSequeue();
             lockCnt=0;
             while (carWaitCnt != 0) {
                 if (isWait) {
                     waiting = true;
-//                    System.out.println("dead lock!!!");
                     lockCnt++;
                     if(lockCnt>100){
                         processDeadLock();
@@ -91,10 +93,23 @@ public class Main {
             }
             //所有车上路
             driveCarInitList(false);
+            createCarSequeue();
             for (Cross cross : crossList) {
                 cross.lockDelayTime--;
             }
+            for (Road r : roads.values()) {
+               if(r.block){
+                   if(--r.blockTime==0){
+                       r.block=false;
+                   }
+               }
+            }
             if(presetCnt<=0) cctime--; 
+            //调试
+//            logger.info(time);
+//            for(Road r:roads.values()){
+//                logger.info(r);
+//            }
         }
         TimeCalc tc = new TimeCalc(time-1, cars);
         tc.calc();
@@ -109,8 +124,10 @@ public class Main {
 //         init car to carInGarage
         Car c;
         LinkedList<Car> list;
+        modPresetCnt = (int)Math.floor(presetCnt*0.1);
         for (Car car : cars) {
             if(!car.isPreset())
+                //方便排序
                 car.setRealTime(car.getPlanTime());
             if ((list = carInGarage.get(car.getFrom())) != null) {
                 list.add(car);
@@ -136,14 +153,22 @@ public class Main {
         for (Channel channel : fchannels) {
             channel.driveCar(b);
         }
-        road.createCarSequeue(road.getTo());
         if (road.getIsDuplex()) {
             List<Channel> bchannels = road.getBchannels();
             for (Channel channel : bchannels) {
                 channel.driveCar(b);
             }
-            road.createCarSequeue(road.getFrom());
         }
+    }
+    
+    public static void createCarSequeue(){
+        for (Road road : roads.values()) {
+            road.createCarSequeue(road.getTo());
+            if (road.getIsDuplex()) {
+                road.createCarSequeue(road.getFrom());
+            }
+        }
+        
     }
     // TODO:driveAllWaitCar
     public static void driveAllWaitCar(Cross cross) {
@@ -190,8 +215,9 @@ public class Main {
                     // 从道路删除
                     firstChannel.channel.poll();
                     firstChannel.driveCar(false);
-                    firstChannel.road.createCarSequeue(cross.getId());
+//                    firstChannel.road.createCarSequeue(cross.getId());
                     driveCarInitList(crosses.get(firstChannel.road.getFrom()), firstChannel.road);
+                    firstChannel.road.createCarSequeue(cross.getId());
                     decideCrossWaitNextRoad(cross);
                     System.out.println("arrvie " + carArriveCnt);
                     continue;
@@ -272,10 +298,9 @@ public class Main {
             car.setFlag(Car.END);
             // 车道终结态后调度该车道
             firstChannel.driveCar(false);
-            firstChannel.road.createCarSequeue(cross.getId());
             driveCarInitList(crosses.get(firstChannel.road.getFrom()), firstChannel.road);
+            firstChannel.road.createCarSequeue(cross.getId());
             decideCrossWaitNextRoad(cross);
-            
             return true;
         }
         if (chan.moveInACar(firstChannel, car)) {
@@ -289,8 +314,8 @@ public class Main {
         }
         // 车道终结态后调度该车道
         firstChannel.driveCar(false);
-        firstChannel.road.createCarSequeue(cross.getId());
         driveCarInitList(crosses.get(firstChannel.road.getFrom()), firstChannel.road);
+        firstChannel.road.createCarSequeue(cross.getId());
         decideCrossWaitNextRoad(cross);
         return true;
     }
@@ -307,9 +332,19 @@ public class Main {
                    road=list.get(k);
                    car = road.getFirst(cross.getId());
                    if(car==null) continue;
-                   if(car.isPreset()) continue;
-                   nextRoad = cross.getRelaxedChannel(road.getId());
-                   car.replaceLastPath(nextRoad.getId());
+                   if(car.isPreset()){
+                       if(modPresetCnt>0){
+                           modPresetCnt--;
+                           car.setPreset(false);
+                           car.removeCurNextAll();
+                       }else{
+                           continue;
+                       }
+                   }
+                   road.block=true;
+//                   nextRoad = cross.getRelaxedChannel(road.getId());
+                   nextRoad = findNextPath(cross, road, car);
+                   car.addPath(nextRoad.getId());
                    cross.lockDelayTime=20;
                    continue;
                 }
@@ -362,13 +397,14 @@ public class Main {
                             break;
                     }
                 }else{
-                    if(presetCnt!=0) continue; 
-                    if(cctime>0)continue;
+//                    if(presetCnt!=0) continue;
+                    if(presetCnt<=0)
+                        if(cctime>0)continue;
                     if(!proiority){
                         if(c.isProiority())continue;
                     }
                     if (c.getPlanTime() <= time) {
-                        if(cross.lockDelayTime>0) continue;
+//                        if(cross.lockDelayTime>0) continue;
                         nextRoad = findNextPath(cross,null,c);
                         chan = nextRoad.getIntoChannels(cross.getId());
                         if (chan == null){
@@ -390,16 +426,19 @@ public class Main {
                             else 
                                 continue;
                         if(presetCnt==0){
-                            if((carAllCnt - carArriveCnt)>2000) break;
+                            if((carAllCnt - carArriveCnt)>3000) break;
                         }else{
-                            if((carAllCnt - carArriveCnt)>200) continue;
+                            if((carAllCnt - carArriveCnt)>1000) continue;
                         }
                         
-                        if(has>sum*0.3){//map2
+                        if(has>sum*0.2){
                             if(presetCnt==0) 
                                 break;
                             else 
                                 continue;
+                        }
+                        if(chan.road.block){
+                            continue;
                         }
                         chan.intoNewCar(c);
                         carlist.remove(i);
@@ -444,7 +483,7 @@ public class Main {
                         continue;
                     chan = curRoad.getIntoChannels(cross.getId());
                     if (chan == null)
-                        return;
+                        continue;
                     if (!chan.channel.isEmpty()) {
                         if ((lastCar = chan.channel.getLast()).getFlag() == Car.WAIT) {
                             maxSpeed = Math.min(curRoad.getSpeed(), c.getSpeed());
@@ -464,52 +503,55 @@ public class Main {
                         break;
                 }
             }else{
-                if(presetCnt>0) continue;
-                if(cctime>0)continue;
-              if (c.getPlanTime() <= time) {
-                  if(cross.lockDelayTime>0) continue;
-                  nextRoad = findNextPath(cross,null,c);
-                  chan = nextRoad.getIntoChannels(cross.getId());
-                  if (chan == null){
-                      continue;
-                  }
-                  if(!chan.channel.isEmpty()){
-                      if ((lastCar = chan.channel.getLast()).getFlag() == Car.WAIT) {
-//                          maxSpeed = Math.min(curRoad.getSpeed(), c.getSpeed());
-//                          if (maxSpeed >= lastCar.getCurRoadDis())
-//                              continue;
+                continue;
+//                if(presetCnt>0) continue;
+//                if(cctime>0)continue;
+//                if(presetCnt<=0)
+//                    if(cctime>0)continue;
+//              if (c.getPlanTime() <= time) {
+//                  if(cross.lockDelayTime>0) continue;
+//                  nextRoad = findNextPath(cross,null,c);
+//                  chan = nextRoad.getIntoChannels(cross.getId());
+//                  if (chan == null){
+//                      continue;
+//                  }
+//                  if(!chan.channel.isEmpty()){
+//                      if ((lastCar = chan.channel.getLast()).getFlag() == Car.WAIT) {
+////                          maxSpeed = Math.min(curRoad.getSpeed(), c.getSpeed());
+////                          if (maxSpeed >= lastCar.getCurRoadDis())
+////                              continue;
+////                          continue;
 //                          continue;
-                          break;
-                      }
-                  }
-                  sum =  nextRoad.getMaxCarNum();
-                  has = nextRoad.getCurHaveCarNum(cross.getId());
-                  if((cross.getCurCarNum()*1.0/cross.getMaxCarNum())>1.0/10)
-                          break;
-                  if(presetCnt==0){
-                      if((carAllCnt - carArriveCnt)>2000) break;
-                  }else{
-                      if((carAllCnt - carArriveCnt)>200) continue;
-                  }
-                  
-                  if(has>sum*0.3){
-                      if(presetCnt==0) 
-                          break;
-                      else 
-                          continue;
-                  }
-                  chan.intoNewCar(c);
-                  carlist.remove(i);
-                  i--;
-                  carAllCnt++;
-                  c.addPath(nextRoad.getId());
-                  c.setRealTime(time);;
-                  System.out.println("车" + c.getId() + "开始上路 总数：" + carAllCnt + "  当前路上有："
-                          + (carAllCnt - carArriveCnt) + " 已到达" + carArriveCnt);
-              } else {
-                  if (!c.isProiority())
-                      break;
-              }
+//                      }
+//                  }
+//                  sum =  nextRoad.getMaxCarNum();
+//                  has = nextRoad.getCurHaveCarNum(cross.getId());
+//                  if((cross.getCurCarNum()*1.0/cross.getMaxCarNum())>1.0/8)
+//                          continue;
+//                  if(presetCnt==0){
+//                      if((carAllCnt - carArriveCnt)>5000) break;
+//                  }else{
+//                      if((carAllCnt - carArriveCnt)>1500) continue;
+//                  }
+//                  
+//                  if(has>sum*0.3){
+//                      if(presetCnt==0) 
+//                          break;
+//                      else 
+//                          continue;
+//                  }
+//                  chan.intoNewCar(c);
+//                  carlist.remove(i);
+//                  i--;
+//                  carAllCnt++;
+//                  c.addPath(nextRoad.getId());
+//                  c.setRealTime(time);;
+//                  System.out.println("车" + c.getId() + "开始上路 总数：" + carAllCnt + "  当前路上有："
+//                          + (carAllCnt - carArriveCnt) + " 已到达" + carArriveCnt);
+//              } else {
+//                  if (!c.isProiority())
+//                      break;
+//              }
             }
         }
 
@@ -523,16 +565,10 @@ public class Main {
             if(curRoad!=null&&r.getId()==curRoad.getId()) continue;//原来的道路跳过
             if(!r.isAccessibleInto(cross.getId()))continue;
             shortValue = shorPathMap.get(r.getNextCrossId(cross.getId())).get(car.getTo());
-            r.mark = r.getLength()+shortValue;
+            r.mark = r.getWeigth()+shortValue;
             priList.add(r);
         }
-        Collections.sort(priList, new Comparator<Road>(){
-            @Override
-            public int compare(Road o1, Road o2) {
-                return o1.mark-o2.mark;
-            }
-            
-        });
+        priList.sort((o1, o2)->o1.mark-o2.mark);
         Channel ch=null;
         Car tmpCar=null;
         //TODO 根据路况选择下一条道路 这里可以优化
@@ -543,13 +579,16 @@ public class Main {
             tmpCar = ch.channel.getLast();
             if(tmpCar.getFlag()==Car.END) return r; 
         }
-        int maxCarNum=0;
-        Road res=priList.get(0);
-        cross.lockDelayTime=20;
+        Road res=null;
+        int k=0;
         for(Road r : priList){
             ch = r.getIntoChannels(cross.getId());
             if(ch==null){
-                res=r;
+                if(k==0){
+                    res = r;
+                    k=1;
+                }
+                   
                 continue;
             }
             tmpCar = ch.channel.getLast();
@@ -559,15 +598,25 @@ public class Main {
                     //成环 死锁
                     System.out.println("----");
 //                    processDeadLock();
+                    cross.lockDelayTime=10;
+                    blockRoad(tmpCar.getWaitRoadSet());
                     continue;
+                }else{
+                    if(k==0) res = r;
                 }
+//                if(k==0) res = r;
             }
 //            return r;
         }
 //        processDeadLock();
-        return res;
+        return res==null?priList.get(0):res;
     }
-    
+    public static void blockRoad(Set<Road> set){
+        for(Road r:set){
+            r.block=true;
+            r.blockTime=ROADBLOCKTIME;
+        }
+    }
     // TODO proiorityCarIntoRoad
     public static Car proiorityCarIntoRoad(Cross cross, Road curRoad, int intoRoadId, List<Road> roadsList) {
         Car tmpCar = null;
@@ -623,11 +672,15 @@ public class Main {
                     }
                     return false;
                 }
-                tmpDir = cross.getTurnDir(tmpCar.getCurRoadId(), tmpCar.getNextRoadId());
-                if (tmpDir == dir) {
+                if(tmpCar.getNextRoadId()==nextRoad.getId()){
                     car.waiting = tmpCar;
                     return true;// 冲突
                 }
+//                tmpDir = cross.getTurnDir(tmpCar.getCurRoadId(), tmpCar.getNextRoadId());
+//                if (tmpDir == dir) {
+//                    car.waiting = tmpCar;
+//                    return true;// 冲突
+//                }
             }
         }
         return false;
@@ -647,10 +700,10 @@ public class Main {
         for (int i = 0; i < srids.size(); i++) {
             Road r = roads.get(srids.get(i));
             if (r.getIsDuplex()) {// 双向道路的坑
-                dist.put(r.getTo() == start ? r.getFrom() : r.getTo(), r.getLength());
+                dist.put(r.getTo() == start ? r.getFrom() : r.getTo(), r.getWeigth());
             } else {
                 if (r.getTo() != start) {
-                    dist.put(r.getTo(), r.getLength());
+                    dist.put(r.getTo(), r.getWeigth());
                 }
             }
         }
@@ -674,12 +727,12 @@ public class Main {
                             continue;
                         Integer twei = dist.get(to);
                         if (twei != null) {
-                            if (r.getLength() + dist.get(nextCid) < twei) {
-                                twei = r.getLength() + dist.get(nextCid);
+                            if (r.getWeigth() + dist.get(nextCid) < twei) {
+                                twei = r.getWeigth() + dist.get(nextCid);
                                 dist.put(to, twei);
                             }
                         } else {
-                            dist.put(to, r.getLength() + dist.get(nextCid));
+                            dist.put(to, r.getWeigth() + dist.get(nextCid));
                         }
                     } else {
                         to = r.getTo();
@@ -687,12 +740,12 @@ public class Main {
                             continue;
                         Integer twei = dist.get(r.getTo());
                         if (twei != null) {
-                            if (r.getLength() + dist.get(nextCid) < twei) {
-                                twei = r.getLength() + dist.get(nextCid);
+                            if (r.getWeigth() + dist.get(nextCid) < twei) {
+                                twei = r.getWeigth() + dist.get(nextCid);
                                 dist.put(r.getTo(), twei);
                             }
                         } else {
-                            dist.put(r.getTo(), r.getLength() + dist.get(nextCid));
+                            dist.put(r.getTo(), r.getWeigth() + dist.get(nextCid));
                         }
                     }
 
@@ -845,6 +898,7 @@ public class Main {
                 if (m.find()) {
                     carId = Integer.parseInt(m.group());
                     car = carMap.get(carId);
+                    car.setPreset(true);
                 }
                 if (m.find()) {
                     car.setRealTime(Integer.parseInt(m.group()));
@@ -871,9 +925,9 @@ public class Main {
         try {
             PrintWriter write = new PrintWriter(new File(answerPath));
             for (Car car : cars) {
-//                if(!car.isPreset()){
+                if(!car.isPreset()){
                     write.println(car.toString());
-//                }
+                }
                 
             }
             write.flush();

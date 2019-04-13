@@ -1,6 +1,8 @@
 package com.huawei;
 
+import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.Set;
 
 public class Car implements Comparable<Car>{
     public static final int BEGIN = 0;
@@ -70,6 +72,12 @@ public class Car implements Comparable<Car>{
     public void replaceLastPath(int roadId){
         realPath.removeLast();
         realPath.add(roadId);
+    }
+    public void removeCurNextAll(){
+        int i=curPos;
+        while(i<realPath.size()-1){
+            realPath.removeLast();
+        }
     }
     public int getTime(Road road){
         int sp = Math.min(speed,road.getSpeed());
@@ -175,6 +183,21 @@ public class Car implements Comparable<Car>{
         isVisit=false;
         return c;
     }
+    
+    public Set<Road> getWaitRoadSet(){
+        Set<Road> set = new HashSet<>();
+        Set<Integer> carSet = new HashSet<>();
+        Car c1=this;
+        Car c2 = c1.waiting;
+        while(!waiting.equals(this)&&!carSet.contains(c1.getId())){
+            if(c1.curCh!=null)
+                set.add(c1.curCh.road);
+            carSet.add(c1.getId());
+            c1 = c2;
+            c2 = c1.waiting;
+        }
+        return set;
+    }
    
     @Override
     public String toString() {
@@ -194,7 +217,11 @@ public class Car implements Comparable<Car>{
         
         return id == ((Car)obj).getId();
     }
-    
+    @Override
+    public int hashCode() {
+        // TODO Auto-generated method stub
+        return Integer.hashCode(id);
+    }
     @Override
     public int compareTo(Car o) {
         //速度快的先调度

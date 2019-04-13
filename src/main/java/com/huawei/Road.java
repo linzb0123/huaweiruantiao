@@ -14,7 +14,7 @@ public class Road implements Comparable<Road> {
     private int from;
     private int to;
     private boolean isDuplex;
-
+    
     private List<Channel> fchannels = new ArrayList<>();// forward
     private List<Channel> bchannels = new ArrayList<>();// backward
     
@@ -22,10 +22,8 @@ public class Road implements Comparable<Road> {
     List<Car> bcarSeq = new ArrayList<>();
 
     public boolean block = false;
-
-    private int fcurFirstChannelId = 0;
-    private int bcurFirstChannelId = 0;
-
+    public int blockTime =0;
+    
     public boolean flag = false;
     
     public int mark;
@@ -73,97 +71,7 @@ public class Road implements Comparable<Road> {
     }
     // 取第一优先级的
     public Car getFirst(int start) {
-//        Car c = null;
-//        Car res = null;
-//        int maxDis = -1;
-//        boolean proiority = false;
-//        if (start == this.to) {
-//            for (Channel ch : fchannels) {
-//                if (ch.channel.isEmpty())
-//                    continue;
-//                c = ch.channel.getFirst();
-//                if (c == null) {
-//                    continue;
-//                } else {
-//                    if (c.getFlag() == Car.WAIT) {
-//                        // 当前还没有优先车辆
-//                        if (!proiority) {
-//                            // 设置优先车
-//                            if (c.isProiority()) {
-//                                maxDis = c.getCurRoadDis();
-//                                res = c;
-//                                fcurFirstChannelId = ch.cid;
-//                                proiority = true;
-//                            } else {
-//                                // 否则判断距离
-//                                if (c.getCurRoadDis() > maxDis) {
-//                                    maxDis = c.getCurRoadDis();
-//                                    res = c;
-//                                    fcurFirstChannelId = ch.cid;
-//                                }
-//                            }
-//
-//                        } else {
-//                            // 只选择优先车
-//                            if (c.isProiority()) {
-//                                if (c.getCurRoadDis() > maxDis) {
-//                                    maxDis = c.getCurRoadDis();
-//                                    res = c;
-//                                    fcurFirstChannelId = ch.cid;
-//                                }
-//
-//                            }
-//                        }
-//
-//                    }
-//                }
-//
-//            }
-//        } else {
-//            for (Channel ch : bchannels) {
-//                if (ch.channel.isEmpty())
-//                    continue;
-//                c = ch.channel.getFirst();
-//                if (c == null) {
-//                    continue;
-//                } else {
-//                    if (c.getFlag() == Car.WAIT) {
-//                        // 当前还没有优先车辆
-//                        if (!proiority) {
-//                            // 设置优先车
-//                            if (c.isProiority()) {
-//                                maxDis = c.getCurRoadDis();
-//                                res = c;
-//                                bcurFirstChannelId = ch.cid;
-//                                proiority = true;
-//                            } else {
-//                                // 否则判断距离
-//                                if (c.getCurRoadDis() > maxDis) {
-//                                    maxDis = c.getCurRoadDis();
-//                                    res = c;
-//                                    bcurFirstChannelId = ch.cid;
-//                                }
-//                            }
-//
-//                        } else {
-//                            // 只选择优先车
-//                            if (c.isProiority()) {
-//                                if (c.getCurRoadDis() > maxDis) {
-//                                    maxDis = c.getCurRoadDis();
-//                                    res = c;
-//                                    bcurFirstChannelId = ch.cid;
-//                                }
-//
-//                            }
-//                        }
-//
-//                    }
-//                }
-//
-//            }
-//        }
 
-//        return res;
         if(start==this.to){
             if(!fcarSeq.isEmpty()){
                 return fcarSeq.get(0);
@@ -300,7 +208,9 @@ public class Road implements Comparable<Road> {
         this.bchannels = bchannels;
     }
 
-    public double getWeigth() {
+    public int getWeigth() {
+        if(block) return length*10;
+        if(channel==1) return length*2;
         return length;
     }
 
@@ -363,11 +273,49 @@ public class Road implements Comparable<Road> {
     public void setIsDuplex(boolean isDuplex) {
         this.isDuplex = isDuplex;
     }
-
+    
+    @Override
+    public int hashCode() {
+        // TODO Auto-generated method stub
+       return Integer.hashCode(id);
+    }
+    @Override
+    public boolean equals(Object obj) {
+        // TODO Auto-generated method stub
+        if(!(obj instanceof Road))
+            throw  new ClassCastException("类型不匹配");  
+        Road r = (Road)obj;
+        return this.id==r.getId();
+    }
     @Override
     public int compareTo(Road o) {
         // TODO Auto-generated method stub
         return id - o.id;
+    }
+    
+    @Override
+    public String toString() {
+        StringBuilder sb  = new StringBuilder();
+        sb.append(id);
+        for(Channel ch : fchannels){
+            sb.append(" (");
+            sb.append(ch.cid+" :");
+            for(Car c:ch.channel){
+                sb.append("("+c.getCurRoadDis()+":"+c.getId()+" "+c.getFlag()+")");
+            }
+            sb.append(")");
+        }
+        if(isDuplex){
+            for(Channel ch : bchannels){
+                sb.append(" (");
+                sb.append(ch.cid+" :");
+                for(Car c:ch.channel){
+                    sb.append("("+c.getCurRoadDis()+":"+c.getId()+" "+c.getFlag()+")");
+                }
+                sb.append(")");
+            }
+        }
+        return sb.toString();
     }
 
 }
