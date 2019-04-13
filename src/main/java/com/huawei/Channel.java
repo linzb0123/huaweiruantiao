@@ -22,10 +22,6 @@ public class Channel {
         int maxSpeed = Math.min(c.getSpeed(), road.getSpeed());
         if(!this.channel.isEmpty()){
             curTailCar = this.channel.getLast();
-            if (curTailCar.getFlag() == Car.WAIT) {
-                c.setFlag(Car.WAIT);
-                return false;
-            }
             nextCanMoveDis = curTailCar.getCurRoadDis() - 1;
             if (maxSpeed - lastCanMoveDis <= 0) {
                 // 开到路口
@@ -39,6 +35,10 @@ public class Channel {
                     c.setFlag(Car.END);
                     channel.add(c);
                     return true;
+                }
+                if (curTailCar.getFlag() == Car.WAIT) {
+                    c.setFlag(Car.WAIT);
+                    return false;
                 }
                 c.setCurRoadDis(nextCanMoveDis);
                 c.addPos();

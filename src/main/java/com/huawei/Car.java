@@ -1,6 +1,8 @@
 package com.huawei;
 
+import java.util.Collections;
 import java.util.LinkedList;
+import java.util.List;
 
 public class Car implements Comparable<Car>{
     public static final int BEGIN = 0;
@@ -23,11 +25,56 @@ public class Car implements Comparable<Car>{
     private int curRoadDis;//在当前已经道路行驶的距离
    
     private int flag=BEGIN;
-    
+    private Channel curCh;
     private int curPos=0; // 当前的位置（道路）
     public Car(){
         waiting=this;
         curPos = 0;
+    }
+    public Car(int id,int time,boolean pri){
+        this.id = id;
+        this.realTime=time;
+        this.proiority=pri;
+    }
+    
+    public static void main(String[] args) {
+        List<Car> cars = new LinkedList<>();
+        cars.add(new Car(1,5,false));
+        cars.add(new Car(10,5,false));
+        cars.add(new Car(8,7,false));
+        cars.add(new Car(2,7,true));
+        cars.add(new Car(7,4,false));
+        cars.add(new Car(6,3,false));
+        cars.add(new Car(11,10,false));
+        cars.add(new Car(15,8,false));
+        cars.add(new Car(17,44,true));
+        cars.add(new Car(20,2,false));
+        cars.add(new Car(19,44,true));
+        Collections.sort(cars);
+        for(Car c:cars){
+            System.out.println(c.isProiority()+"   "+c.getRealTime()+"    "+c.getId());
+        }
+        System.out.println(cars.size());
+        
+        for(int i=0;i<cars.size();i++){
+            Car c = cars.get(i);
+            if(c.getRealTime()==5){
+                cars.remove(i);
+                i--;
+            }
+        }
+        System.out.println("----------");
+        for(Car c:cars){
+            System.out.println(c.isProiority()+"   "+c.getRealTime()+"    "+c.getId());
+        }
+        System.out.println(cars.size());
+        
+    }
+    public void setChannel(Channel ch){
+        this.curCh = ch;
+    }
+    public Channel getChannel(){
+        return this.curCh;
     }
     public void setArriveTime(int arriveTime){
         this.arriveTime = arriveTime;

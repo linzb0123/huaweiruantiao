@@ -22,9 +22,19 @@ public class Cross implements Comparable<Cross>{
     public boolean isWait = false;
     
     public int lockDelayTime = 0;
-    
+    private List<Road> roadList = null;
     public List<Integer> getRids(){
         return rids;
+    }
+    public List<Road> getRoadList(){
+        if(roadList==null){
+            List<Road> roadsList2 = new ArrayList<>();
+            for (int id : rids) {
+                roadsList2.add(Judge.roads.get(id));
+            }
+            roadList = roadsList2;
+        }
+        return roadList;
     }
     public void initRids(){
         if(north!=-1) rids.add(north);
@@ -32,6 +42,22 @@ public class Cross implements Comparable<Cross>{
         if(south!=-1) rids.add(south);
         if(west!=-1) rids.add(west);
         Collections.sort(rids);
+    }
+    public int getCurCarNum(){
+        int cnt = 0;
+        List<Road> roads = getRoadList();
+        for(Road r : roads){
+            cnt+=r.getCurHaveCarNum(this.id);
+        }
+        return cnt;
+    }
+    public int getMaxCarNum(){
+        int cnt = 0;
+        List<Road> roads = getRoadList();
+        for(Road r : roads){
+            cnt+=r.getChannel()*r.getLength();
+        }
+        return cnt;
     }
     public Road getRelaxedChannel(int roadId){
         Road road;
@@ -216,6 +242,16 @@ public class Cross implements Comparable<Cross>{
     public int compareTo(Cross o) {
         // TODO Auto-generated method stub
         return this.id-o.id;
+    }
+    @Override
+    public boolean equals(Object obj) {
+        if(!(obj instanceof Cross))
+            throw new ClassCastException("类型不匹配");
+        return this.id==((Cross)obj).id;
+    }
+    @Override
+    public int hashCode() {
+        return Integer.hashCode(id);
     }
     
 }

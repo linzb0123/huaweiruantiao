@@ -38,7 +38,6 @@ public class TimeCalc {
         int priMaxSpeed=0;
         int minSpeed=99999;
         int priminSpeed=99999;
-        
         for(Car c : cars){
             allstart.add(c.getFrom());
             allend.add(c.getTo());
@@ -74,7 +73,8 @@ public class TimeCalc {
         
        tE = (int)Math.round(a*tPri)+time;
        tESum = (int)Math.round(b*tSumPri)+tSum;
-        
+       System.out.println(a);
+       System.out.println(b);
     }
     
     

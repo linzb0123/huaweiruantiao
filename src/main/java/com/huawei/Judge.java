@@ -36,7 +36,9 @@ public class Judge {
     }
 
     public static void main(String[] args) {
-        if(args.length<5){
+//        logger.info(time+" "+carArriveCnt+"  "+(carAllCnt-carArriveCnt));
+//       System.exit(1);
+        if (args.length < 5) {
             System.out.println("error main args less than 5 ");
             return;
         }
@@ -53,44 +55,52 @@ public class Judge {
     public static void start() {
         System.out.println("开始调度。。。");
         System.out.println(carMap.size());
-        int lockCnt=0;
+        int lockCnt = 0;
         for (time = 1; carArriveCnt != carMap.size(); time++) {
             System.out.println("当前时间" + time);
             for (Road r : roads.values()) {
                 // 开始新的一轮标定
                 driveJustCurrentRoad(r, true);
             }
-            //优先车上路
+            // 优先车上路
             driveCarInitList(true);
-            lockCnt=0;
+            createCarSequeue();//优先队列
+            lockCnt = 0;
             while (carWaitCnt != 0) {
                 if (isWait) {
                     waiting = true;
-//                    System.out.println("dead lock!!!");
+                    // System.out.println("dead lock!!!");
                     lockCnt++;
-                    if(lockCnt>10000){
+                    if (lockCnt > 10000) {
                         System.out.println("Dead Lock!!!");
+                        for (Cross cross : crossList) {
+                            if (cross.isWait) {
+                                System.out.println(cross.getMaxCarNum() + "   " + cross.getCurCarNum());
+                            }
+                        }
                         System.exit(1);
                     }
                 }
-               
+
                 isWait = true;
                 for (Cross cross : crossList) {
                     // System.out.println("调度路口"+cross.getId());
-                     cross.isWait = true;
+                    cross.isWait = true;
                     driveAllWaitCar(cross);
                 }
 
             }
-            //所有车上路
+            // 所有车上路
             driveCarInitList(false);
+            //logger.info(time+" "+carArriveCnt+"  "+(carAllCnt-carArriveCnt));
+            createCarSequeue();
         }
-        TimeCalc tc = new TimeCalc(time-1, cars);
+        TimeCalc tc = new TimeCalc(time - 1, cars);
         tc.calc();
-        System.out.println("调度时间：" + (time - 1)+"    "+tc.tSum);
-        System.out.println(tc.tPri+"    "+tc.tSumPri);
-        System.out.println(tc.tE+"   " + tc.tESum);
-        
+        System.out.println("调度时间：" + (time - 1) + "    " + tc.tSum);
+        System.out.println(tc.tPri + "    " + tc.tSumPri);
+        System.out.println(tc.tE + "   " + tc.tESum);
+
     }
 
     public static void init() {
@@ -118,10 +128,6 @@ public class Judge {
     }
 
     /**
-     * 调整所有道路上在道路上的车辆，让道路上车辆前进，只要不出路口且可以到达终止状态的车辆
-     * 分别标记出来等待的车辆（要出路口的车辆，或者因为要出路口的车辆阻挡而不能前进的车辆）
-     * 和终止状态的车辆（在该车道内可以经过这一次调度可以行驶其最大可行驶距离的车辆）
-     * 
      * @param road
      */
     // TODO:driveAllCarJustOnRoadToEndState
@@ -130,7 +136,6 @@ public class Judge {
         for (Channel channel : fchannels) {
             channel.driveCar(b);
         }
-
         if (road.getIsDuplex()) {
             List<Channel> bchannels = road.getBchannels();
             for (Channel channel : bchannels) {
@@ -138,14 +143,19 @@ public class Judge {
             }
         }
     }
-
+    public static void createCarSequeue(){
+        for (Road road : roads.values()) {
+            road.createCarSequeue(road.getTo());
+            if (road.getIsDuplex()) {
+                road.createCarSequeue(road.getFrom());
+            }
+        }
+        
+    }
     // TODO:driveAllWaitCar
     public static void driveAllWaitCar(Cross cross) {
         List<Integer> rids = cross.getRids();
-        List<Road> roadsList = new ArrayList<>();
-        for (int id : rids) {
-            roadsList.add(roads.get(id));
-        }
+        List<Road> roadsList = cross.getRoadList();
         int k = 0;
         Road road;
         Road nextRoad;
@@ -163,7 +173,7 @@ public class Judge {
                     cnt++;
                     break;
                 }
-                firstChannel = road.getFirstChannel(cross.getId());
+                firstChannel = car.getChannel();
                 // 判断是否到达终点
                 if (car.getTo() == cross.getId()) {
                     // 不是优先车辆
@@ -182,7 +192,8 @@ public class Judge {
                     // 从道路删除
                     firstChannel.channel.poll();
                     firstChannel.driveCar(false);
-                    driveCarInitList(true);
+                    driveCarInitList(crosses.get(firstChannel.road.getFrom()), firstChannel.road);
+                    firstChannel.road.createCarSequeue(cross.getId());
                     System.out.println("arrvie " + carArriveCnt);
                     continue;
                 }
@@ -260,7 +271,8 @@ public class Judge {
             car.setFlag(Car.END);
             // 车道终结态后调度该车道
             firstChannel.driveCar(false);
-            driveCarInitList(true);
+            driveCarInitList(crosses.get(firstChannel.road.getFrom()), firstChannel.road);
+            firstChannel.road.createCarSequeue(cross.getId());
             return true;
         }
         if (chan.moveInACar(firstChannel, car)) {
@@ -273,21 +285,25 @@ public class Judge {
         }
         // 车道终结态后调度该车道
         firstChannel.driveCar(false);
-        driveCarInitList(true);
+        driveCarInitList(crosses.get(firstChannel.road.getFrom()), firstChannel.road);
+        firstChannel.road.createCarSequeue(cross.getId());
         return true;
     }
 
     /* 车库中的车辆上路行驶 */
     public static void driveCarInitList(boolean proiority) {
         Car c;
+        Car lastCar;
         Road curRoad;
         Channel chan;
+        int maxSpeed;
         for (Cross cross : crossList) {
             LinkedList<Car> carlist = carInGarage.get(cross.getId());
             if (carlist == null)
                 continue;
-            if(carlist.isEmpty()) continue;
-            for(int i=0;i<carlist.size();i++){
+            if (carlist.isEmpty())
+                continue;
+            for (int i = 0; i < carlist.size(); i++) {
                 c = carlist.get(i);
                 if (proiority && !c.isProiority()) {
                     break;
@@ -297,9 +313,13 @@ public class Judge {
                     chan = curRoad.getIntoChannels(cross.getId());
                     if (chan == null)
                         continue;
-                    if(!chan.channel.isEmpty()){
-                        if(chan.channel.getLast().getFlag()==Car.WAIT)
-                            continue;
+                    if (!chan.channel.isEmpty()) {
+                        if ((lastCar = chan.channel.getLast()).getFlag() == Car.WAIT) {
+                            maxSpeed = Math.min(curRoad.getSpeed(), c.getSpeed());
+                            if (maxSpeed >= lastCar.getCurRoadDis())
+                                continue;
+                        }
+
                     }
                     chan.intoNewCar(c);
                     carlist.remove(i);
@@ -316,16 +336,58 @@ public class Judge {
         }
     }
 
+    public static void driveCarInitList(Cross cross, Road curRoad) {
+        Car c;
+        Car lastCar;
+        Channel chan;
+        int maxSpeed;
+        LinkedList<Car> carlist = carInGarage.get(cross.getId());
+        if (carlist == null)
+            return;
+        if (carlist.isEmpty())
+            return;
+        for (int i = 0; i < carlist.size(); i++) {
+            c = carlist.get(i);
+            if (!c.isProiority()) {
+                return;
+            }
+            if (c.getRealTime() <= time) {
+                if (c.getCurRoadId() != curRoad.getId())
+                    continue;
+                chan = curRoad.getIntoChannels(cross.getId());
+                if (chan == null)
+                    return;
+                if (!chan.channel.isEmpty()) {
+                    if ((lastCar = chan.channel.getLast()).getFlag() == Car.WAIT) {
+                        maxSpeed = Math.min(curRoad.getSpeed(), c.getSpeed());
+                        if (maxSpeed >= lastCar.getCurRoadDis())
+                            continue;
+                    }
+                }
+                chan.intoNewCar(c);
+                carlist.remove(i);
+                i--;
+                carAllCnt++;
+                System.out.println("车" + c.getId() + "开始上路 总数：" + carAllCnt + "  当前路上有：" + (carAllCnt - carArriveCnt)
+                        + " 已到达" + carArriveCnt);
+            } else {
+                if (!c.isProiority())
+                    break;
+            }
+        }
+
+    }
+
     // TODO proiorityCarIntoRoad
     public static boolean proiorityCarIntoRoad(Cross cross, Road curRoad, int intoRoadId, List<Road> roadsList) {
         Car tmpCar = null;
         for (Road r : roadsList) {
             if (r.getId() == curRoad.getId())
                 continue;
-            if ((tmpCar = r.getFirst(cross.getId())) != null&&tmpCar.isProiority()) {
-                if(tmpCar.getTo()== cross.getId()){
+            if ((tmpCar = r.getFirst(cross.getId())) != null && tmpCar.isProiority()) {
+                if (tmpCar.getTo() == cross.getId()) {
                     int nextRid = cross.getTidByByStraight(r.getId());
-                    return nextRid==intoRoadId;
+                    return nextRid == intoRoadId;
                 }
                 if (tmpCar.getNextRoadId() == r.getId()) {
                     return true;
@@ -345,12 +407,15 @@ public class Judge {
                 if (proiority && !tmpCar.isProiority())
                     return false;
                 if (tmpCar.getTo() == cross.getId()) {
-                 // 即将到站的为直行优先级
-                    int nextRid = cross.getTidByByStraight(curRoad.getId());
-                    return nextRid==nextRoad.getId();
+                    // 即将到站的为直行优先级
+                    if(dir==Cross.STRAIGHT) return true;
+                    return false;
                 }
-                tmpDir = cross.getTurnDir(tmpCar.getCurRoadId(), tmpCar.getNextRoadId());
-                if (tmpDir == dir) {
+//                tmpDir = cross.getTurnDir(tmpCar.getCurRoadId(), tmpCar.getNextRoadId());
+//                if (tmpDir == dir) {
+//                    return true;// 冲突
+//                }
+                if(tmpCar.getNextRoadId()==nextRoad.getId()){
                     return true;// 冲突
                 }
             }
@@ -472,7 +537,7 @@ public class Judge {
             }
             sc.close();
             // 读入presetAnswer
-            sc = new Scanner(new File(answerPath));// answerPath
+            sc = new Scanner(new File(presetAnswerPath));// answerPath
             while (sc.hasNextLine()) {
                 String line = sc.nextLine();
                 if (line.charAt(0) == '#')
@@ -483,7 +548,6 @@ public class Judge {
                     path.setCarId(Integer.parseInt(m.group()));
                 }
                 if (m.find()) {
-
                     path.setStartTime(Integer.parseInt(m.group()));
                 }
                 LinkedList<Integer> list = new LinkedList<>();
@@ -491,7 +555,7 @@ public class Judge {
                     list.add(Integer.parseInt(m.group()));
                 }
                 path.setRoadIds(list);
-//                answers.add(path);
+                answers.add(path);
             }
             sc.close();
             // 读入answer
@@ -514,6 +578,7 @@ public class Judge {
                     list.add(Integer.parseInt(m.group()));
                 }
                 path.setRoadIds(list);
+               if(carMap.get(path.getCarId()).isPreset())continue;
                 answers.add(path);
             }
             sc.close();
