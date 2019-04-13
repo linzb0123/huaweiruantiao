@@ -425,7 +425,7 @@ public class Main {
                         }
                         sum =  nextRoad.getMaxCarNum();
                         has = nextRoad.getCurHaveCarNum(cross.getId());
-                        if((cross.getCurCarNum()*1.0/cross.getMaxCarNum())>1.0/8)
+                        if((cross.getCurCarNum()*1.0/cross.getMaxCarNum())>1.0/9)
                             if(presetCnt==0) 
                                 break;
                             else 
@@ -433,10 +433,10 @@ public class Main {
                         if(presetCnt==0){
                             if((carAllCnt - carArriveCnt)>3000) break;
                         }else{
-                            if((carAllCnt - carArriveCnt)>700) continue;
+                            if((carAllCnt - carArriveCnt)>400) continue;
                         }
                         
-                        if(has>sum*0.2){
+                        if(has>sum*0.3){
                             if(presetCnt==0) 
                                 break;
                             else 
@@ -598,17 +598,17 @@ public class Main {
             }
             tmpCar = ch.channel.getLast();
             if(tmpCar.getFlag()==Car.WAIT){
-//                Car cc;
-//                if((cc=tmpCar.findWaitChain())==null||car.equals(cc)){
-//                    //成环 死锁
-//                    System.out.println("----");
-////                    processDeadLock();
-//                    cross.lockDelayTime=10;
-//                    blockRoad(tmpCar.getWaitRoadSet());
-//                    continue;
-//                }else{
-//                    if(k==0) res = r;
-//                }
+                Car cc;
+                if((cc=tmpCar.findWaitChain())==null||car.equals(cc)){
+                    //成环 死锁
+                    System.out.println("----");
+                   // processDeadLock();
+                    cross.lockDelayTime=10;
+                    blockRoad(tmpCar.getWaitRoadSet());
+                    continue;
+                }else{
+                    if(k==0) res = r;
+                }
                 if(k==0) res = r;
             }
 //            return r;
